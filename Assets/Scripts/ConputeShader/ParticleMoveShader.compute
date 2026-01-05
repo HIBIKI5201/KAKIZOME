@@ -1,67 +1,44 @@
 #pragma kernel Phase1
 #pragma kernel Phase2
-#pragma kernel ToWord
+#pragma kernel PhaseFinal
+
+#define TAU 6.28318530718
+#define AIR_RESISTANCE 0.95
 
 RWStructuredBuffer<float3> PositionBuffer;
+RWStructuredBuffer<float3> VelocityBuffer;
 RWStructuredBuffer<float3> TargetBuffer;
 
+float Time;
 float DeltaTime;
 uint ParticleCount;
+
+// フェーズ0情報
+float Radius;
+
+// フェーズ1情報
+RWStructuredBuffer<uint> Phase1Indices;
+uint Phase1Count;
+float3 CenterPosition;
+
+// フェーズ2情報
+RWStructuredBuffer<uint> Phase2Indices;
+uint Phase2Count;
+
+// 最終フェーズ情報
+RWStructuredBuffer<uint> PhaseFinalIndices;
+uint PhaseFinalCount;
 
 float StopDistance;
 float Speed;
 
-RWStructuredBuffer<uint> Phase1Indices;
-uint Phase1Count;
-float3 CenterPosition;
-float Radius;
-
-RWStructuredBuffer<uint> Phase2Indices;
-uint Phase2Count;
-
+float Hash01(uint n)
+{
+    return frac(sin(n * 12.9898) * 43758.5453);
+}
 
 [numthreads(64, 1, 1)]
 void Phase1(uint id : SV_DispatchThreadID)
-{
-    if (id >= Phase1Count) { return; }
-    
-    // インデックスバッファからパーティクルのインデックスを取得。
-    uint particleIndex = Phase1Indices[id];
-    
-    float3 pos = PositionBuffer[particleIndex];
-    
-    float3 dir = normalize(CenterPosition - pos);
-         
-    // 中心から遠ざかる。
-    pos -= dir * Speed * DeltaTime;
-    PositionBuffer[particleIndex] = pos;
-}
-
-[numthreads(64, 1, 1)]
-void Phase2(uint id : SV_DispatchThreadID)
-{
-    if (id > Phase2Count) { return; }
-    
-    // インデックスバッファからパーティクルのインデックスを取得。
-    uint particleIndex = Phase2Indices[id];
-    
-    float3 pos = PositionBuffer[particleIndex];
-    
-    float3 dir = pos - CenterPosition;
-    float angle = atan2(dir.z, dir.x);
-    angle += Speed * DeltaTime;
-    
-    float3 newPos;
-    newPos.x = CenterPosition.x + cos(angle) * Radius;
-    newPos.z = CenterPosition.z + sin(angle) * Radius;
-
-    // Yは固定（リング状）
-    newPos.y = pos.y;
-    PositionBuffer[particleIndex] = newPos;
-}
-
-[numthreads(64, 1, 1)]
-void ToWord(uint id : SV_DispatchThreadID)
 {
     if (id >= Phase1Count)
     {
@@ -69,10 +46,90 @@ void ToWord(uint id : SV_DispatchThreadID)
     }
     
     // インデックスバッファからパーティクルのインデックスを取得。
-    uint particleIndex = Phase1Indices[id];
+    uint i = Phase1Indices[id];
     
-    float3 target = TargetBuffer[particleIndex];
-    float3 pos = PositionBuffer[particleIndex];
+    float3 pos = PositionBuffer[i];
+    
+    float3 dir = normalize(CenterPosition - pos);
+         
+    // 中心から遠ざかる。
+    pos -= dir * Speed * DeltaTime;
+    PositionBuffer[i] = pos;
+}
+
+[numthreads(64, 1, 1)]
+void Phase2(uint id : SV_DispatchThreadID)
+{
+    if (id >= Phase2Count)
+    {
+        return;
+    }
+
+    uint i = Phase2Indices[id];
+
+    float3 pos = PositionBuffer[i];
+    float3 vel = VelocityBuffer[i];
+
+    // ----- パラメータ -----
+    float MinRadius = 10;
+    float MaxRadius = 20;
+    float RadiusForce = 6;
+    float YSpring = 10;
+    float OrbitalSpeed = 6;
+
+    // パーティクル固有値。
+    float seed = Hash01(i);
+    float baseRadius = lerp(MinRadius, MaxRadius, seed);
+    float initialAngle = seed * TAU; // 0～2πの間。
+    
+    // 厚みノイズ。
+    float jitter = (MaxRadius - MinRadius) * 0.05 * (seed - 0.5);
+    float targetRadius = baseRadius + jitter;
+
+    // 円環の平面ベクトル
+    float3 toPos = pos - CenterPosition;
+    toPos.y = 0.0;
+    float r = length(toPos);
+    r = max(r, 0.0001);
+    float3 normalized = toPos / r;
+    float3 tangent = float3(-normalized.z, 0, normalized.x);
+
+    // 公転運動。
+    float angularSpeed = OrbitalSpeed / max(targetRadius, MinRadius);
+    float3 targetTangentVel = tangent * (angularSpeed * targetRadius);
+    float3 currentTangentVel = dot(vel, tangent) * tangent;
+    
+    vel += (targetTangentVel - currentTangentVel) * 4 * DeltaTime;
+
+    float rError = targetRadius - r;
+    vel += normalized * rError * RadiusForce * DeltaTime;
+
+    // Y軸のバネ挙動。
+    float yErr = CenterPosition.y - pos.y;
+    vel.y += yErr * YSpring * DeltaTime;
+
+    vel *= AIR_RESISTANCE; // 空気抵抗。
+
+    pos += vel * DeltaTime;
+
+    PositionBuffer[i] = pos;
+    VelocityBuffer[i] = vel;
+}
+
+
+[numthreads(64, 1, 1)]
+void PhaseFinal(uint id : SV_DispatchThreadID)
+{
+    if (id >= PhaseFinalCount)
+    {
+        return;
+    }
+    
+    // インデックスバッファからパーティクルのインデックスを取得。
+    uint i = PhaseFinalIndices[id];
+    
+    float3 target = TargetBuffer[i];
+    float3 pos = PositionBuffer[i];
     
     float3 diff = target - pos;
     float dist = length(diff);
@@ -81,11 +138,36 @@ void ToWord(uint id : SV_DispatchThreadID)
     if (dist <= StopDistance)
     {
         // ストップしたらターゲット位置にスナップ。
-        PositionBuffer[particleIndex] = target;
+        PositionBuffer[i] = target;
         return;
     }
     
     // ターゲットに向かって移動。
     pos += dir * Speed * DeltaTime;
-    PositionBuffer[particleIndex] = pos;
+    PositionBuffer[i] = pos;
+}
+
+// HSVをRGBに変換する。
+float3 HSVtoRGB(float h, float s, float v)
+{
+    float c = v * s;
+    float h_prime = h * 6.0;
+    float x = c * (1 - abs(fmod(h_prime, 2.0) - 1));
+    float3 rgb = float3(0, 0, 0);
+    
+    if (0 <= h_prime && h_prime < 1)
+        rgb = float3(c, x, 0);
+    else if (1 <= h_prime && h_prime < 2)
+        rgb = float3(x, c, 0);
+    else if (2 <= h_prime && h_prime < 3)
+        rgb = float3(0, c, x);
+    else if (3 <= h_prime && h_prime < 4)
+        rgb = float3(0, x, c);
+    else if (4 <= h_prime && h_prime < 5)
+        rgb = float3(x, 0, c);
+    else if (5 <= h_prime && h_prime < 6)
+        rgb = float3(c, 0, x);
+
+    float m_val = v - c;
+    return rgb + float3(m_val, m_val, m_val);
 }
