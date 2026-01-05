@@ -38,7 +38,6 @@ namespace Master.Modules
                 _data.Shader.SetBuffer(index, _data.PositionBufferName, bufferContainer.PositionBuffer);
                 _data.Shader.SetBuffer(index, _data.VelocityBufferName, bufferContainer.VelocityBuffer);
                 _data.Shader.SetBuffer(index, _data.TargetBufferName, bufferContainer.TargetBuffer);
-                _data.Shader.SetBuffer(index, _data.ColorBufferName, bufferContainer.ColorBuffer);
 
                 _data.Shader.SetBuffer(index, _data.PhaseKernelDastas[i].IndexBufferName, bufferContainer.PhaseIndicesBuffers[i]);
             }
