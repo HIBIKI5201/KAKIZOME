@@ -179,6 +179,7 @@ void ColorUpdate(uint3 id : SV_DispatchThreadID)
 {
     float n = 5; // 内側の範囲。
     float m = 8; // グラデーション範囲。
+    float centerGradationTime = 0.2;
     
     uint index = id.x;
     if (index >= ParticleCount)
@@ -194,31 +195,31 @@ void ColorUpdate(uint3 id : SV_DispatchThreadID)
 
     if (dist <= n)
     {
-        // 内側は黄色固定。
-        color = float3(1, 1, 0);
-    }
-    else if (dist <= m)
-    {
-        // グラデーション（黄色から色相環）
-        float t = (dist - n) / (m - n); // 0は内側、1は外側。
-        float angle = atan2(diff.z, diff.x) / (2.0 * 3.14159265); // -0.5から0.5。
-        if (angle < 0)
-        {
-            angle += 1.0;
-        }
-        float hue = lerp(1.0 / 6.0, angle, t); // 黄色から色相環へのLerp。
-        color = HSVtoRGB(hue, 1.0, 1.0);
+        // 内側は時間に応じたグラデーション。
+        float hue = fmod(Time * centerGradationTime, 1);
+        color = HSVtoRGB(hue, 1, 1);
     }
     else
     {
-        // 外側は角度に応じた色相環。
-        float angle = atan2(diff.z, diff.x) / (2.0 * 3.14159265); // -0.5 → 0.5
+        float angle = atan2(diff.z, diff.x) / (2.0 * 3.14159265); // -0.5から0.5。
         if (angle < 0)
         {
-            angle += 1.0;
+            angle += 1;
         }
         
-        color = HSVtoRGB(angle, 1.0, 1.0);
+        if (dist <= m)
+        {
+            // グラデーション（中央から色相環）
+            float t = (dist - n) / (m - n); // 0は内側、1は外側。
+            float hue = lerp(1 / 6, angle, t); // 中央から色相環へのLerp。
+            
+            color = HSVtoRGB(hue, 1, 1);
+        }
+        else
+        {
+            // 外側は角度に応じた色相環。    
+            color = HSVtoRGB(angle, 1, 1);
+        }
     }
 
     ColorBuffer[index] = color;
