@@ -50,9 +50,6 @@ namespace Master.Entities
             state.Dependency = job.Schedule(_particleEntityQuery, state.Dependency);
             state.Dependency.Complete();
 
-            ecb.Playback(state.EntityManager);
-            ecb.Dispose();
-
             // 結果をGPUバッファとGlobalStateへ転送。
             IGraphicBufferContainer container = GPUBufferContainerLocator.Get();
             NativeArray<uint> phaseIndices = new(entityCount, Allocator.Temp);
