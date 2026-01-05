@@ -69,7 +69,8 @@ namespace Master.Runner
             GlobalState globalState = _entityManager.GetGlobalState();
             ReadOnlySpan<int> phaseCounts = globalState.PhaseCountArray.AsReadOnlySpan();
             _computeShaderTransfer.Dispatch(Time.deltaTime, Time.time,
-                _gpuBufferContainer.PhaseIndicesBuffers, phaseCounts);
+                _gpuBufferContainer.PhaseIndicesBuffers, phaseCounts,
+                _particleCount);
         }
 
         private void OnDestroy()
@@ -92,7 +93,7 @@ namespace Master.Runner
         {
             _wordManagerModule = new(_wordDataArray);
             _initialSphereModule = new(_initialRadius, _centerPosition);
-            _gpuBufferContainer = new(_particleCount, _computeShaderData.KernelDastas.Length);
+            _gpuBufferContainer = new(_particleCount, _computeShaderData.PhaseKernelDastas.Length);
             _entityManager = new(world);
             _visualEffectTransfer = new(vfx, _vfxParameterNames);
             _computeShaderTransfer = new(_computeShaderData);
@@ -109,7 +110,7 @@ namespace Master.Runner
                 _particleSpeed, _particleStopDistance);
 
             GPUBufferContainerLocator.Register(_gpuBufferContainer);
-            _entityManager.CreateSystems(_particleCount, _computeShaderData.KernelDastas.Length, 
+            _entityManager.CreateSystems(_particleCount, _computeShaderData.PhaseKernelDastas.Length, 
                 _phase1Configs, _phase2Configs);
         }
     }
