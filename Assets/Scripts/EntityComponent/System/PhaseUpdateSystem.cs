@@ -16,48 +16,65 @@ namespace Master.Entities
     {
         public void OnCreate(ref SystemState state)
         {
-            _particleEntityQuery = state.GetEntityQuery(
+            _phase1EntityQuery = state.GetEntityQuery(
                 ComponentType.ReadWrite<ParticleEntity>(),
                 ComponentType.ReadWrite<Phase1TimerEntity>()
-            );
+                );
+            _phase2EntityQuery = state.GetEntityQuery(
+                ComponentType.ReadWrite<ParticleEntity>(),
+                ComponentType.ReadWrite<Phase2TimerEntity>()
+                );
 
             state.RequireForUpdate<GlobalState>();
-            state.RequireForUpdate(_particleEntityQuery);
+            state.RequireForUpdate(_phase1EntityQuery);
         }
 
         public void OnUpdate(ref SystemState state)
         {
             GlobalState globalState = SystemAPI.GetSingleton<GlobalState>();
 
-            int entityCount = _particleEntityQuery.CalculateEntityCount();
-            if (entityCount == 0) { return; }
-            NativeArray<uint> phaseIndicesArray = new(entityCount, Allocator.TempJob);
+            int phase1EntityCount = _phase1EntityQuery.CalculateEntityCount();
+            int phase2EntityCount = _phase2EntityQuery.CalculateEntityCount();
+            int sumEntityCount = phase1EntityCount + phase2EntityCount;
+            if (sumEntityCount == 0) { return; }
+            NativeArray<int> phaseArray = new(sumEntityCount, Allocator.TempJob);
 
             var ecb = SystemAPI
                 .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
             // ジョブの設定とスケジューリング。
-            PhaseUpdateJob job = new()
+            float delta = SystemAPI.Time.DeltaTime;
+            Phase1UpdateJob job = new()
             {
                 ECB = ecb.AsParallelWriter(),
-                DeltaTime = SystemAPI.Time.DeltaTime,
-                PhaseOutput = phaseIndicesArray
+                DeltaTime = delta,
+                PhaseOutput = phaseArray
             };
+            state.Dependency = job.Schedule(_phase1EntityQuery, state.Dependency);
 
-            state.Dependency = job.Schedule(_particleEntityQuery, state.Dependency);
+            state.Dependency.Complete();
+
+            Phase2UpdateJob job2 = new()
+            {
+                ECB = ecb.AsParallelWriter(),
+                DeltaTime = delta,
+                PhaseOutput = phaseArray
+            };
+            state.Dependency = job2.Schedule(_phase2EntityQuery, state.Dependency);
+
             state.Dependency.Complete();
 
             // 結果をGPUバッファとGlobalStateへ転送。
             IGraphicBufferContainer container = GPUBufferContainerLocator.Get();
-            NativeArray<uint> phaseIndices = new(entityCount, Allocator.Temp);
+            NativeArray<uint> phaseIndices = new(sumEntityCount, Allocator.Temp);
             for (int i = 0; i < globalState.KernelValue; i++)
             {
                 int count = 0;
-                for (int j = 0; j < entityCount; j++)
+                for (int j = 0; j < sumEntityCount; j++)
                 {
                     // phaseIndicesArrayの値は1始まりなので-1して比較。
-                    if (phaseIndicesArray[j] - 1 == i)
+                    if (phaseArray[j] - 1 == i)
                     {
                         phaseIndices[count] = (uint)j;
                         count++;
@@ -69,36 +86,67 @@ namespace Master.Entities
             }
 
             // メモリの解放。
-            phaseIndicesArray.Dispose();
+            phaseArray.Dispose();
         }
 
-        private EntityQuery _particleEntityQuery;
+        private EntityQuery _phase1EntityQuery;
+        private EntityQuery _phase2EntityQuery;
     }
 
     [BurstCompile]
-    public partial struct PhaseUpdateJob : IJobEntity
+    public partial struct Phase1UpdateJob : IJobEntity
     {
         public float DeltaTime;
         public EntityCommandBuffer.ParallelWriter ECB;
 
-        public NativeArray<uint> PhaseOutput;
+        public NativeArray<int> PhaseOutput;
 
         void Execute(
-            [EntityIndexInQuery] int entityIndex,
             Entity entity,
             ref ParticleEntity particle,
-            ref Phase1TimerEntity phase1Timer)
+            ref Phase1TimerEntity timer)
         {
-            phase1Timer.ElapsedTime += DeltaTime;
+            timer.ElapsedTime += DeltaTime;
+            int index = particle.Index;
 
-            if (phase1Timer.Timer < phase1Timer.ElapsedTime)
+            if (timer.Timer < timer.ElapsedTime)
             {
-                PhaseOutput[entityIndex] = 2;
-                ECB.RemoveComponent<Phase1TimerEntity>(entityIndex, entity);
+                PhaseOutput[index] = 2;
+                ECB.RemoveComponent<Phase1TimerEntity>(index, entity);
+                ECB.AddComponent<Phase2TimerEntity>(index, entity);
             }
             else
             {
-                PhaseOutput[entityIndex] = 1;
+                PhaseOutput[index] = particle.Phase; // 元のフェーズ。
+            }
+        }
+    }
+
+    [BurstCompile]
+    public partial struct Phase2UpdateJob : IJobEntity
+    {
+        public float DeltaTime;
+        public EntityCommandBuffer.ParallelWriter ECB;
+
+        public NativeArray<int> PhaseOutput;
+
+        void Execute(
+            Entity entity,
+            ref ParticleEntity particle,
+            ref Phase2TimerEntity timer)
+        {
+            int index = particle.Index;
+
+            timer.ElapsedTime += DeltaTime;
+
+            if (timer.Timer < timer.ElapsedTime)
+            {
+                PhaseOutput[index] = 3;
+                ECB.RemoveComponent<Phase2TimerEntity>(index, entity);
+            }
+            else
+            {
+                PhaseOutput[index] = particle.Phase; // 元のフェーズ。
             }
         }
     }
