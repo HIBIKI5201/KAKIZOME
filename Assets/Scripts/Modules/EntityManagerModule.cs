@@ -1,7 +1,5 @@
-using Master.Modules;
 using System;
 using Unity.Entities;
-using UnityEngine.LightTransport;
 
 namespace Master.Entities
 {
@@ -19,6 +17,7 @@ namespace Master.Entities
             GlobalState globalState = new(count, 5);
             Entity globalStateEntity = _entityManager.CreateEntity(typeof(GlobalState));
             _entityManager.SetComponentData(globalStateEntity, globalState);
+            _globalStateQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<GlobalState>());
 
             SystemHandle initializeSystem = _world.CreateSystem<ParticleInitializeSystem>();
             SystemHandle phaseSystem = _world.CreateSystem<PhaseUpdateSystem>();
@@ -34,18 +33,20 @@ namespace Master.Entities
             _group.Update();
         }
 
+        public GlobalState GetGlobalState() => _globalStateQuery.GetSingleton<GlobalState>();
+
         public void Dispose()
         {
             _world.DestroySystemManaged(_group);
-            using var query = _entityManager.CreateEntityQuery(
-                ComponentType.ReadOnly<GlobalState>()
-            );
-            GlobalState globalState = query.GetSingleton<GlobalState>();
+            GlobalState globalState = _globalStateQuery.GetSingleton<GlobalState>();
             globalState.Dispose();
+            _globalStateQuery.Dispose();
         }
 
         private readonly World _world;
         private readonly EntityManager _entityManager;
         private readonly ParticleSystemGroup _group;
+
+        private EntityQuery _globalStateQuery;
     }
 }
