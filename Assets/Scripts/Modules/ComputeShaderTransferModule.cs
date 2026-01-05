@@ -16,11 +16,11 @@ namespace Master.Modules
             _data = data;
 
             // カーネルインデックス取得。
-            PhaseKernelData[] kernelNames = data.KernelDastas;
-            _kernelIndexs = new int[kernelNames.Length];
-            for (int i = 0; i < kernelNames.Length; i++)
+            PhaseKernelData[] kernelDatas = data.KernelDastas;
+            _kernelIndexs = new int[kernelDatas.Length];
+            for (int i = 0; i < kernelDatas.Length; i++)
             {
-                _kernelIndexs[i] = data.Shader.FindKernel(kernelNames[i].KernelName);
+                _kernelIndexs[i] = data.Shader.FindKernel(kernelDatas[i].KernelName);
             }
         }
 
@@ -50,6 +50,8 @@ namespace Master.Modules
                 if (counts[i] == 0) { continue; }
 
                 int threadGroups = Mathf.CeilToInt(counts[i] / 256f);
+
+                _data.Shader.SetInt(_data.KernelDastas[i].CounterName, counts[i]);
                 _data.Shader.Dispatch(_kernelIndexs[i], threadGroups, 1, 1);
             }
         }
