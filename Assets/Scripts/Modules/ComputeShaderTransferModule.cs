@@ -13,7 +13,14 @@ namespace Master.Modules
             ComputeShaderData.Assert(data);
 
             _data = data;
-            _kernelIndex = _data.Shader.FindKernel(KERNEL_NAME);
+
+            // カーネルインデックス取得。
+            string[] kernelNames = data.KernelNames;
+            _kernelIndexs = new int[kernelNames.Length];
+            for (int i = 0; i < kernelNames.Length; i++)
+            {
+                _kernelIndexs[i] = data.Shader.FindKernel(kernelNames[i]);
+            }
         }
 
         public void BindParameter(
@@ -22,26 +29,28 @@ namespace Master.Modules
             float speed,
             float stopDistance)
         {
-            _data.Shader.SetBuffer(_kernelIndex, _data.PositionBufferName, bufferContainer.PositionBuffer);
-            _data.Shader.SetBuffer(_kernelIndex, _data.TargetBufferName, bufferContainer.TargetBuffer);
-            _data.Shader.SetBuffer(_kernelIndex, _data.PhaseBufferName, bufferContainer.PhaseBuffer);
+            foreach (var index in _kernelIndexs)
+            {
+                _data.Shader.SetBuffer(index, _data.PositionBufferName, bufferContainer.PositionBuffer);
+                _data.Shader.SetBuffer(index, _data.TargetBufferName, bufferContainer.TargetBuffer);
+                _data.Shader.SetBuffer(index, _data.PhaseBufferName, bufferContainer.PhaseBuffer);
+            }
+
             _data.Shader.SetInt(_data.ParticleCountName, count);
             _data.Shader.SetFloat(_data.SpeedName, speed);
             _data.Shader.SetFloat(_data.StopDistanceName, stopDistance);
             _agentCount = count;
         }
 
-        public void Dispatch(float deltaTime)
+        public void Dispatch(float deltaTime, GraphicsBuffer[] phaseBuffers)
         {
             _data.Shader.SetFloat(_data.DeltaTimeName, deltaTime);
 
             int threadGroups = Mathf.CeilToInt(_agentCount / 256f);
-            _data.Shader.Dispatch(_kernelIndex, threadGroups, 1, 1);
+            _data.Shader.Dispatch(_kernelIndexs[0], threadGroups, 1, 1);
         }
 
-        private const string KERNEL_NAME = "CSMain";
-
-        private readonly int _kernelIndex;
+        private readonly int[] _kernelIndexs;
         private readonly ComputeShaderData _data;
 
         private int _agentCount;
@@ -50,6 +59,7 @@ namespace Master.Modules
         public struct ComputeShaderData
         {
             public ComputeShader Shader => _shader;
+            public string[] KernelNames => _kernelNames;
             public string PositionBufferName => _positionBufferName;
             public string TargetBufferName => _targetBufferName;
             public string PhaseBufferName => _phaseBufferName;
@@ -72,6 +82,10 @@ namespace Master.Modules
 
             [SerializeField, Tooltip("シェーダー")]
             private ComputeShader _shader;
+
+            [Space]
+            [SerializeField, Tooltip("カーネル名")]
+            private string[] _kernelNames;
 
             [Space]
             [SerializeField, Tooltip("位置バッファ名")]
