@@ -17,6 +17,10 @@ namespace Master.Modules
             _phaseBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, count, sizeof(int));
             _count = count;
             _phaseIndicesBuffers = new GraphicsBuffer[kernelValue];
+            for (int i = 0; i < kernelValue; i++)
+            {
+                _phaseIndicesBuffers[i] = new GraphicsBuffer(GraphicsBuffer.Target.Structured, count, sizeof(uint));
+            }
         }
 
         public GraphicsBuffer PositionBuffer => _positionBuffer;
