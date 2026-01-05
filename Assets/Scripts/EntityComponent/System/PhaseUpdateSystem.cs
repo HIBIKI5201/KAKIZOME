@@ -56,7 +56,8 @@ namespace Master.Entities
                 int count = 0;
                 for (int j = 0; j < entityCount; j++)
                 {
-                    if (phaseIndicesArray[j] == i)
+                    // phaseIndicesArrayの値は1始まりなので-1して比較。
+                    if (phaseIndicesArray[j] - 1 == i)
                     {
                         phaseIndices[count] = (uint)j;
                         count++;
@@ -92,12 +93,12 @@ namespace Master.Entities
 
             if (phase1Timer.Timer < phase1Timer.ElapsedTime)
             {
-                PhaseOutput[entityIndex] = 1;
+                PhaseOutput[entityIndex] = 2;
                 ECB.RemoveComponent<Phase1TimerEntity>(entityIndex, entity);
             }
             else
             {
-                PhaseOutput[entityIndex] = 0;
+                PhaseOutput[entityIndex] = 1;
             }
         }
     }
