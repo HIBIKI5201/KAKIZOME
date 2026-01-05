@@ -43,6 +43,9 @@ namespace Master.Modules
                 _data.Shader.SetBuffer(index, _data.PhaseKernelDastas[i].IndexBufferName, bufferContainer.PhaseIndicesBuffers[i]);
             }
 
+            _data.Shader.SetBuffer(_colorKernelIndex, _data.PositionBufferName, bufferContainer.PositionBuffer);
+            _data.Shader.SetBuffer(_colorKernelIndex, _data.ColorBufferName, bufferContainer.ColorBuffer);
+
             _data.Shader.SetInt(_data.ParticleCountName, count);
             _data.Shader.SetVector(_data.CenterPositionName, centerPos);
             _data.Shader.SetFloat(_data.RotationRadiusName, radius);
