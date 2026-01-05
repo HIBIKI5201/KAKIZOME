@@ -52,7 +52,7 @@ namespace Master.Modules
             {
                 if (counts[i] == 0) { continue; }
 
-                int threadGroups = Mathf.CeilToInt(counts[i] / 256f);
+                int threadGroups = Mathf.CeilToInt(counts[i] / 64f);
 
                 _data.Shader.SetInt(_data.KernelDastas[i].CounterName, counts[i]);
                 _data.Shader.Dispatch(_kernelIndexs[i], threadGroups, 1, 1);
