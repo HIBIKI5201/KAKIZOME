@@ -11,6 +11,7 @@ namespace Master.Modules
         public GraphicsBuffer PositionBuffer { get; }
         public GraphicsBuffer VelocityBuffer { get; }
         public GraphicsBuffer TargetBuffer { get; }
+        public GraphicsBuffer ColorBuffer {  get; }
         public GraphicsBuffer[] PhaseIndicesBuffers { get; }
     }
 }
