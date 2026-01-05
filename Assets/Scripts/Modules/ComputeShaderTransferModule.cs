@@ -97,7 +97,7 @@ namespace Master.Modules
             public static void Assert(ComputeShaderData data)
             {
                 Debug.Assert(data.Shader != null, "ComputeShader is null");
-                Debug.Assert(data.KernelDastas.Length == 0, $"{nameof(KernelDastas)} length is 0");
+                Debug.Assert(data.KernelDastas.Length != 0, $"{nameof(KernelDastas)} length is 0");
                 Debug.Assert(!string.IsNullOrEmpty(data.PositionBufferName), $"{nameof(PositionBufferName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.TargetBufferName), $"{nameof(TargetBufferName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.PhaseBufferName), $"{nameof(PhaseBufferName)} is null");
