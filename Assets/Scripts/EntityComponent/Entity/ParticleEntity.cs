@@ -7,6 +7,13 @@ namespace Master.Entities
     /// </summary>
     public struct ParticleEntity : IComponentData
     {
+        public ParticleEntity(int index)
+        {
+            Index = index;
+            Phase = 1;
+        }
+
+        public readonly int Index;
         public int Phase;
     }
 }
