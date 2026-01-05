@@ -103,7 +103,7 @@ namespace Master.Runner
         /// </summary>
         private void DependencyInjection()
         {
-            _visualEffectTransfer.BindParameter(_gpuBufferContainer.PositionBuffer, _particleCount);
+            _visualEffectTransfer.BindParameter(_gpuBufferContainer, _particleCount);
             _computeShaderTransfer.BindParameter(_gpuBufferContainer, _particleCount,
                 _centerPosition, _phase1Configs.RotationRadius,
                 _particleSpeed, _particleStopDistance);
