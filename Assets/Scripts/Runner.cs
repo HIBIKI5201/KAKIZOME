@@ -65,7 +65,8 @@ namespace Master.Runner
 
             GlobalState globalState = _entityManager.GetGlobalState();
             ReadOnlySpan<int> phaseCounts = globalState.PhaseCountArray.AsReadOnlySpan();
-            _computeShaderTransfer.Dispatch(Time.deltaTime, _gpuBufferContainer.PhaseIndicesBuffers, phaseCounts);
+            _computeShaderTransfer.Dispatch(Time.deltaTime, Time.time,
+                _gpuBufferContainer.PhaseIndicesBuffers, phaseCounts);
         }
 
         private void OnDestroy()
