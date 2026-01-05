@@ -1,6 +1,7 @@
 #pragma kernel Phase1
 #pragma kernel Phase2
 #pragma kernel PhaseFinal
+#pragma kernel ColorUpdate
 
 #define TAU 6.28318530718
 #define AIR_RESISTANCE 0.95
@@ -8,6 +9,7 @@
 RWStructuredBuffer<float3> PositionBuffer;
 RWStructuredBuffer<float3> VelocityBuffer;
 RWStructuredBuffer<float3> TargetBuffer;
+RWStructuredBuffer<float3> ColorBuffer;
 
 float Time;
 float DeltaTime;
@@ -170,4 +172,54 @@ float3 HSVtoRGB(float h, float s, float v)
 
     float m_val = v - c;
     return rgb + float3(m_val, m_val, m_val);
+}
+
+[numthreads(256, 1, 1)]
+void ColorUpdate(uint3 id : SV_DispatchThreadID)
+{
+    float n = 5; // 内側の範囲。
+    float m = 8; // グラデーション範囲。
+    
+    uint index = id.x;
+    if (index >= ParticleCount)
+    {
+        return;
+    }
+    
+    float3 pos = PositionBuffer[index];
+    float3 diff = pos - CenterPosition;
+
+    float dist = length(diff.xz); // XZ平面の距離。
+    float3 color = float3(1, 1, 1); // デフォルトは白色。
+
+    if (dist <= n)
+    {
+        // 内側は黄色固定。
+        color = float3(1, 1, 0);
+    }
+    else if (dist <= m)
+    {
+        // グラデーション（黄色から色相環）
+        float t = (dist - n) / (m - n); // 0は内側、1は外側。
+        float angle = atan2(diff.z, diff.x) / (2.0 * 3.14159265); // -0.5から0.5。
+        if (angle < 0)
+        {
+            angle += 1.0;
+        }
+        float hue = lerp(1.0 / 6.0, angle, t); // 黄色から色相環へのLerp。
+        color = HSVtoRGB(hue, 1.0, 1.0);
+    }
+    else
+    {
+        // 外側は角度に応じた色相環。
+        float angle = atan2(diff.z, diff.x) / (2.0 * 3.14159265); // -0.5 → 0.5
+        if (angle < 0)
+        {
+            angle += 1.0;
+        }
+        
+        color = HSVtoRGB(angle, 1.0, 1.0);
+    }
+
+    ColorBuffer[index] = color;
 }
