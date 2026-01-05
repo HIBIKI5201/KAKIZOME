@@ -43,7 +43,7 @@ namespace Master.Entities
 
         public void Dispose()
         {
-            if (_globalStateQuery != null)
+            if (_globalStateQuery != null && !_globalStateQuery.IsEmpty)
             {
                 GlobalState globalState = _globalStateQuery.GetSingleton<GlobalState>();
                 globalState.Dispose();
