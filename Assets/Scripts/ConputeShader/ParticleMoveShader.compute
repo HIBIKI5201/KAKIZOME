@@ -1,0 +1,39 @@
+#pragma kernel CSMain
+
+RWStructuredBuffer<float3> PositionBuffer;
+RWStructuredBuffer<float3> TargetBuffer;
+RWStructuredBuffer<int> PhaseBuffer;
+
+float DeltaTime;
+uint ParticleCount;
+
+float StopDistance;
+float Speed;
+
+[numthreads(256, 1, 1)]
+void CSMain(uint id : SV_DispatchThreadID)
+{
+    if (id >= ParticleCount) { return; }
+    
+    float3 target = TargetBuffer[(int) id];
+    float3 pos = PositionBuffer[id];
+    
+    switch (PhaseBuffer[(int) id])
+    {
+        case 0:
+            break;
+        case 1:
+            float3 dir = normalize(target - pos);
+    
+            if (distance(target, pos) <= StopDistance)
+            {
+                PositionBuffer[(int) id] = target;
+                return;
+            }
+            
+            pos += dir * Speed * DeltaTime;
+            PositionBuffer[(int) id] = pos;
+            break;
+    }
+    
+}
