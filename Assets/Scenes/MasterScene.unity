@@ -272,7 +272,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!108 &410087040
 Light:
@@ -324,7 +324,7 @@ Light:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingLayerMask: 1
-  m_Lightmapping: 4
+  m_Lightmapping: 2
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
@@ -398,7 +398,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!114 &832575518
 MonoBehaviour:
@@ -432,6 +432,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1362195998
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1362196000}
+  - component: {fileID: 1362195999}
+  m_Layer: 0
+  m_Name: Restarter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!114 &1362195999
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1362195998}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5ebc5ffa90f25540bf810211512777b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Restarter
+--- !u!4 &1362196000
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1362195998}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1919479455
 GameObject:
   m_ObjectHideFlags: 0
@@ -449,7 +493,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!114 &1919479456
 MonoBehaviour:
@@ -464,12 +508,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Master.Runner
   _centerPosition: {x: 0, y: 7.5, z: 0}
-  _particleCount: 300000
-  _particleSpeed: 8
-  _particleStopDistance: 0.1
-  _initialRadius: 5
+  _particleCount: 30000
+  _particleSpeed: 12
+  _particleStopDistance: 0.3
+  _initialRadius: 3
   _phase1Configs:
-    _duration: 3
+    _duration: 1
     _durationRange: {x: -1, y: 1}
     _rotationRadius: 15
   _phase2Configs:
@@ -505,19 +549,19 @@ MonoBehaviour:
     _stopDistanceName: StopDistance
   _wordDataArray:
   - _mesh: {fileID: 3675354141150844444, guid: 86f282a9cd6f5474c8c509006c16352f, type: 3}
-    _position: {x: 0, y: 15, z: 0}
+    _position: {x: 0, y: 20, z: 0}
     _rotation: {x: -0.00000003090862, y: -0.70710677, z: -0.70710677, w: 0.00000003090862}
     _scale: 10000
   - _mesh: {fileID: 8178486550953448467, guid: 86f282a9cd6f5474c8c509006c16352f, type: 3}
-    _position: {x: 0, y: 10, z: 0}
+    _position: {x: 0, y: 15, z: 0}
     _rotation: {x: -0.00000003090862, y: -0.70710677, z: -0.70710677, w: 0.00000003090862}
     _scale: 10000
   - _mesh: {fileID: 3656475113303650124, guid: 86f282a9cd6f5474c8c509006c16352f, type: 3}
-    _position: {x: 0, y: 5, z: 0}
+    _position: {x: 0, y: 10, z: 0}
     _rotation: {x: -0.00000003090862, y: -0.70710677, z: -0.70710677, w: 0.00000003090862}
     _scale: 10000
   - _mesh: {fileID: 3802414732312670751, guid: 86f282a9cd6f5474c8c509006c16352f, type: 3}
-    _position: {x: 0, y: 0, z: 0}
+    _position: {x: 0, y: 5, z: 0}
     _rotation: {x: -0.00000003090862, y: -0.70710677, z: -0.70710677, w: 0.00000003090862}
     _scale: 10000
 --- !u!4 &1919479457
@@ -637,3 +681,4 @@ SceneRoots:
   - {fileID: 410087041}
   - {fileID: 832575519}
   - {fileID: 1919479457}
+  - {fileID: 1362196000}
