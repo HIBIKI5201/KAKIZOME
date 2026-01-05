@@ -14,7 +14,6 @@ namespace Master.Modules
         {
             _positionBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, count, sizeof(float) * 3);
             _targetBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, count, sizeof(float) * 3);
-            _phaseBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, count, sizeof(int));
             _count = count;
             _phaseIndicesBuffers = new GraphicsBuffer[kernelValue];
             for (int i = 0; i < kernelValue; i++)
@@ -25,7 +24,6 @@ namespace Master.Modules
 
         public GraphicsBuffer PositionBuffer => _positionBuffer;
         public GraphicsBuffer TargetBuffer => _targetBuffer;
-        public GraphicsBuffer PhaseBuffer => _phaseBuffer;
         public GraphicsBuffer[] PhaseIndicesBuffers => _phaseIndicesBuffers;
 
         public void InitializeData(WordManagerModule word, InitialSphereModule sphere)
@@ -41,24 +39,16 @@ namespace Master.Modules
             sphere.RandomArray(ref initialPos);
             _positionBuffer.SetData(initialPos);
             initialPos.Dispose();
-
-            // 全てのフェーズを0に初期化。
-            NativeArray<int> phaseData = new NativeArray<int>(_count, Allocator.Temp);
-            for (int i = 0; i < _count; i++) { phaseData[i] = 0; }
-            _phaseBuffer.SetData(phaseData);
-            phaseData.Dispose();
         }
 
         public void Dispose()
         {
             _positionBuffer.Dispose();
             _targetBuffer.Dispose();
-            _phaseBuffer.Dispose();
         }
 
         private readonly GraphicsBuffer _positionBuffer;
         private readonly GraphicsBuffer _targetBuffer;
-        private readonly GraphicsBuffer _phaseBuffer;
         private readonly GraphicsBuffer[] _phaseIndicesBuffers;
 
         private readonly int _count;
