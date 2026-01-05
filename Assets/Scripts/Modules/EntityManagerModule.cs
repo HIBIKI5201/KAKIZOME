@@ -22,10 +22,14 @@ namespace Master.Entities
             _globalStateQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<GlobalState>());
 
             SystemHandle initializeSystem = _world.CreateSystem<ParticleInitializeSystem>();
-            SystemHandle phaseSystem = _world.CreateSystem<PhaseUpdateSystem>();
+            SystemHandle phase1System = _world.CreateSystem<Phase1UpdateSystem>();
+            SystemHandle phase2System = _world.CreateSystem<Phase2UpdateSystem>();
+            SystemHandle syncSystem = _world.CreateSystem<ParticlePhaseSyncSystem>();
 
             _group.AddSystemToUpdateList(initializeSystem);
-            _group.AddSystemToUpdateList(phaseSystem);
+            _group.AddSystemToUpdateList(phase1System);
+            _group.AddSystemToUpdateList(phase2System);
+            _group.AddSystemToUpdateList(syncSystem);
 
             _group.SortSystems();
         }
