@@ -6,24 +6,26 @@ namespace Master.Entities
 {
     public struct GlobalState : IComponentData, INativeDisposable
     {
-        public GlobalState(int count, float phase1Duration)
+        public GlobalState(int count, int kernelValue, float phase1Duration)
         {
             Count = count;
+            KernelValue = kernelValue;
             Phase1Duration = phase1Duration;
 
-            PhaseArray = new NativeArray<int>(count, Allocator.Persistent);
+            PhaseCountArray = new NativeArray<int>(count, Allocator.Persistent);
         }
 
         public readonly int Count;
+        public readonly int KernelValue;
         public readonly float Phase1Duration;
 
-        public readonly NativeArray<int> PhaseArray;
+        public NativeArray<int> PhaseCountArray;
 
         public JobHandle Dispose(JobHandle inputDeps)
         {
-            if (PhaseArray.IsCreated)
+            if (PhaseCountArray.IsCreated)
             {
-                return PhaseArray.Dispose(inputDeps);
+                return PhaseCountArray.Dispose(inputDeps);
             }
 
             return inputDeps;
@@ -32,9 +34,9 @@ namespace Master.Entities
         // 即時解放
         public void Dispose()
         {
-            if (PhaseArray.IsCreated)
+            if (PhaseCountArray.IsCreated)
             {
-                PhaseArray.Dispose();
+                PhaseCountArray.Dispose();
             }
         }
     }
