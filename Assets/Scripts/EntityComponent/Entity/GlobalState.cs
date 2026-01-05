@@ -6,18 +6,14 @@ namespace Master.Entities
 {
     public struct GlobalState : IComponentData, INativeDisposable
     {
-        public GlobalState(int count, int kernelValue, float phase1Duration)
+        public GlobalState(int count, int kernelValue)
         {
-            Count = count;
             KernelValue = kernelValue;
-            Phase1Duration = phase1Duration;
 
             PhaseCountArray = new NativeArray<int>(count, Allocator.Persistent);
         }
 
-        public readonly int Count;
         public readonly int KernelValue;
-        public readonly float Phase1Duration;
 
         public NativeArray<int> PhaseCountArray;
 
