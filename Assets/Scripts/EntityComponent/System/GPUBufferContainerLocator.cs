@@ -22,6 +22,15 @@ namespace Master.Entities
             _gpuBufferContainer = container;
         }
 
+        public static void Unregister(IGraphicBufferContainer container)
+        {
+            // 登録されているコンテナを渡さないと解除できない。
+            if (container != _gpuBufferContainer) { return; }
+
+            _gpuBufferContainer = null;
+        }
+
+
         private static IGraphicBufferContainer _gpuBufferContainer;
     }
 }
