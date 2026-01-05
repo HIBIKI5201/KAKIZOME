@@ -34,6 +34,7 @@ namespace Master.Modules
             {
                 int index = _kernelIndexs[i];
                 _data.Shader.SetBuffer(index, _data.PositionBufferName, bufferContainer.PositionBuffer);
+                _data.Shader.SetBuffer(index, _data.VelocityBufferName, bufferContainer.VelocityBuffer);
                 _data.Shader.SetBuffer(index, _data.TargetBufferName, bufferContainer.TargetBuffer);
 
                 _data.Shader.SetBuffer(index, _data.KernelDastas[i].IndexBufferName, bufferContainer.PhaseIndicesBuffers[i]);
@@ -46,9 +47,10 @@ namespace Master.Modules
             _data.Shader.SetFloat(_data.StopDistanceName, stopDistance);
         }
 
-        public void Dispatch(float deltaTime, GraphicsBuffer[] phaseBuffers, ReadOnlySpan<int> counts)
+        public void Dispatch(float deltaTime, float time, GraphicsBuffer[] phaseBuffers, ReadOnlySpan<int> counts)
         {
             _data.Shader.SetFloat(_data.DeltaTimeName, deltaTime);
+            _data.Shader.SetFloat(_data.TimeName, time);
 
             for (int i = 0; i < _kernelIndexs.Length; i++)
             {
@@ -85,11 +87,13 @@ namespace Master.Modules
             public ComputeShader Shader => _shader;
             public PhaseKernelData[] KernelDastas => _kernelNames;
             public string PositionBufferName => _positionBufferName;
+            public string VelocityBufferName => _velocityBufferName;
             public string TargetBufferName => _targetBufferName;
             public string PhaseBufferName => _phaseBufferName;
             public string ParticleCountName => _particleCountName;
             public string CenterPositionName => _centerPositionName;
             public string RotationRadiusName => _rotationRadiusName;
+            public string TimeName => _timeName;
             public string DeltaTimeName => _deltaTimeName;
             public string SpeedName => _speedName;
             public string StopDistanceName => _stopDistanceName;
@@ -99,11 +103,13 @@ namespace Master.Modules
                 Debug.Assert(data.Shader != null, "ComputeShader is null");
                 Debug.Assert(data.KernelDastas.Length != 0, $"{nameof(KernelDastas)} length is 0");
                 Debug.Assert(!string.IsNullOrEmpty(data.PositionBufferName), $"{nameof(PositionBufferName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.VelocityBufferName), $"{nameof(VelocityBufferName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.TargetBufferName), $"{nameof(TargetBufferName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.PhaseBufferName), $"{nameof(PhaseBufferName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.ParticleCountName), $"{nameof(ParticleCountName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.CenterPositionName), $"{nameof(CenterPositionName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.RotationRadiusName), $"{nameof(RotationRadiusName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.TimeName), $"{nameof(TimeName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.DeltaTimeName), $"{nameof(DeltaTimeName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.SpeedName), $"{nameof(SpeedName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.StopDistanceName), $"{nameof(StopDistanceName)} is null");
@@ -119,6 +125,8 @@ namespace Master.Modules
             [Space]
             [SerializeField, Tooltip("位置バッファ名")]
             private string _positionBufferName;
+            [SerializeField, Tooltip("速度バッファ名")]
+            private string _velocityBufferName;
             [SerializeField, Tooltip("目標バッファ名")]
             private string _targetBufferName;
             [SerializeField, Tooltip("フェーズバッファ名")]
@@ -129,6 +137,8 @@ namespace Master.Modules
             private string _centerPositionName;
             [SerializeField, Tooltip("回転半径")]
             private string _rotationRadiusName;
+            [SerializeField, Tooltip("タイム名")]
+            private string _timeName;
             [SerializeField, Tooltip("デルタタイム名")]
             private string _deltaTimeName;
             [SerializeField, Tooltip("速度パラメータ名")]
