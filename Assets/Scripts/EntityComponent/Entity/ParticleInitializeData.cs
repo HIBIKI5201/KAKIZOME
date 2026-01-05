@@ -3,11 +3,11 @@ using Unity.Entities;
 namespace Master.Entities
 {
     /// <summary>
-    ///     パーティクル初期化エンティティコンポーネント。
+    ///     パーティクル初期化データ。
     /// </summary>
-    public readonly struct ParticleInitializeEntity : IComponentData
+    public readonly struct ParticleInitializeData
     {
-        public ParticleInitializeEntity(int count, float phase1Duration)
+        public ParticleInitializeData(int count, float phase1Duration)
         {
             Count = count;
             Phase1Duration = phase1Duration;
