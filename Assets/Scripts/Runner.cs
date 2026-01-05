@@ -52,8 +52,6 @@ namespace Master.Runner
             _gpuBufferContainer.InitializeData(_wordManagerModule, _initialSphereModule);
             #endregion
 
-
-
             _visualEffectTransfer.Play();
 
         }
@@ -61,7 +59,7 @@ namespace Master.Runner
         private void Update()
         {
             _entityManager.UpdateSystems();
-            _computeShaderTransfer.Dispatch(Time.deltaTime);
+            _computeShaderTransfer.Dispatch(Time.deltaTime, _gpuBufferContainer.PhaseIndicesBuffers);
         }
 
         private void OnDestroy()
@@ -84,7 +82,7 @@ namespace Master.Runner
         {
             _wordManagerModule = new(_wordDataArray);
             _initialSphereModule = new(_initialRadius, _centerPosition);
-            _gpuBufferContainer = new(_particleCount);
+            _gpuBufferContainer = new(_particleCount, _computeShaderData.KernelDastas.Length);
             _entityManager = new(world);
             _visualEffectTransfer = new(vfx, _vfxParameterNames);
             _computeShaderTransfer = new(_computeShaderData);
