@@ -44,7 +44,7 @@ namespace Master.Entities
             state.Dependency = job.Schedule(_particleEntityQuery, state.Dependency);
             state.Dependency.Complete();
 
-            // 結果のGPUバッファへの転送。
+            // 結果をGPUバッファとGlobalStateへ転送。
             IGraphicBufferContainer container = GPUBufferContainerLocator.Get();
             NativeArray<uint> phaseIndices = new(entityCount, Allocator.Temp);
             for (int i = 0; i < globalState.KernelValue; i++)
@@ -94,4 +94,11 @@ namespace Master.Entities
             }
         }
     }
+
+    // TODO:
+    // フェーズごとのパーティクル量のカウントと
+    // インデックス配列の生成を並列Job化する
+    // 先にパーティクルカウントを計算し、
+    // フェーズごとに並び替えたインデックスの配列を一つ作り
+    // スライスしてSetDataする
 }
