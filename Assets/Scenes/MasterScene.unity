@@ -464,14 +464,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Master.Runner
   _centerPosition: {x: 0, y: 7.5, z: 0}
-  _particleCount: 30000
+  _particleCount: 100000
   _particleSpeed: 4
   _particleStopDistance: 0.1
+  _phase1Configs:
+    _duration: 1
   _vfxParameterNames:
     _positionBuffer: PositionBuffer
     _particleCount: ParticleCount
   _computeShaderData:
     _shader: {fileID: 7200000, guid: f6f99a9e72d7c46449ea6230682cd4d2, type: 3}
+    _kernelNames:
+    - _kernelName: Phase0
+      _indexBufferName: Phase0Indices
+      _counterName: Phase0Count
+    - _kernelName: Phase1
+      _indexBufferName: Phase1Indices
+      _counterName: Phase1Count
     _positionBufferName: PositionBuffer
     _targetBufferName: TargetBuffer
     _phaseBufferName: PhaseBuffer
