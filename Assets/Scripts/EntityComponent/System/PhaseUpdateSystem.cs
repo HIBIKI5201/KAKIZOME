@@ -124,6 +124,7 @@ namespace Master.Entities
         public NativeArray<int> PhaseOutput;
 
         void Execute(
+            [EntityIndexInQuery] int entityIndex,
             Entity entity,
             ref ParticleEntity particle,
             ref Phase1TimerEntity timer)
@@ -134,9 +135,9 @@ namespace Master.Entities
             if (timer.Timer < timer.ElapsedTime)
             {
                 particle.Phase = 2;
-                ECB.RemoveComponent<Phase1TimerEntity>(index, entity);
+                ECB.RemoveComponent<Phase1TimerEntity>(entityIndex, entity);
                 Phase2TimerEntity newTimer = new Phase2TimerEntity(Phase2Configs.Duration);
-                ECB.AddComponent(index, entity, newTimer);
+                ECB.AddComponent(entityIndex, entity, newTimer);
             }
 
             PhaseOutput[index] = particle.Phase;
@@ -152,6 +153,7 @@ namespace Master.Entities
         public NativeArray<int> PhaseOutput;
 
         void Execute(
+            [EntityIndexInQuery] int entityIndex,
             Entity entity,
             ref ParticleEntity particle,
             ref Phase2TimerEntity timer)
@@ -163,7 +165,7 @@ namespace Master.Entities
             if (timer.Timer < timer.ElapsedTime)
             {
                 particle.Phase = 3;
-                ECB.RemoveComponent<Phase2TimerEntity>(index, entity);
+                ECB.RemoveComponent<Phase2TimerEntity>(entityIndex, entity);
             }
 
             PhaseOutput[index] = particle.Phase;
