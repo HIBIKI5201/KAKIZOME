@@ -30,10 +30,13 @@ namespace Master.Modules
             float speed,
             float stopDistance)
         {
-            foreach (var index in _kernelIndexs)
+            for (int i = 0; i < _kernelIndexs.Length; i++)
             {
+                int index = _kernelIndexs[i];
                 _data.Shader.SetBuffer(index, _data.PositionBufferName, bufferContainer.PositionBuffer);
                 _data.Shader.SetBuffer(index, _data.TargetBufferName, bufferContainer.TargetBuffer);
+
+                _data.Shader.SetBuffer(index, _data.KernelDastas[i].IndexBufferName, bufferContainer.PhaseIndicesBuffers[i]);
             }
 
             _data.Shader.SetInt(_data.ParticleCountName, count);
