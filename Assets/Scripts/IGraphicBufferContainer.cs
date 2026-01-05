@@ -9,6 +9,7 @@ namespace Master.Modules
     public interface IGraphicBufferContainer
     {
         public GraphicsBuffer PositionBuffer { get; }
+        public GraphicsBuffer VelocityBuffer { get; }
         public GraphicsBuffer TargetBuffer { get; }
         public GraphicsBuffer[] PhaseIndicesBuffers { get; }
     }
