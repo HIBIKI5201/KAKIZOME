@@ -59,7 +59,10 @@ namespace Master.Runner
         private void Update()
         {
             _entityManager.UpdateSystems();
-            _computeShaderTransfer.Dispatch(Time.deltaTime, _gpuBufferContainer.PhaseIndicesBuffers);
+
+            GlobalState globalState = _entityManager.GetGlobalState();
+            ReadOnlySpan<int> phaseCounts = globalState.PhaseCountArray.AsReadOnlySpan();
+            _computeShaderTransfer.Dispatch(Time.deltaTime, _gpuBufferContainer.PhaseIndicesBuffers, phaseCounts);
         }
 
         private void OnDestroy()
@@ -98,7 +101,7 @@ namespace Master.Runner
                 _particleCount, _particleSpeed, _particleStopDistance);
             
             GPUBufferContainerLocator.Register(_gpuBufferContainer);
-            _entityManager.CreateSystems(_particleCount);
+            _entityManager.CreateSystems(_particleCount, _computeShaderData.KernelDastas.Length);
         }
     }
 }
