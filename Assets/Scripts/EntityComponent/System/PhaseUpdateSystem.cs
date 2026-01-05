@@ -1,3 +1,4 @@
+using Master.Modules;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -31,26 +32,39 @@ namespace Master.Entities
 
             int entityCount = _particleEntityQuery.CalculateEntityCount();
             if (entityCount == 0) { return; }
-            NativeArray<NativeList<uint>> phaseArray = new(globalState.KernelValue, Allocator.TempJob);
-            phaseArray.FillArray(new NativeList<uint>(Allocator.TempJob));
+            NativeArray<uint> phaseIndicesArray = new(entityCount, Allocator.TempJob);
 
             // ジョブの設定とスケジューリング。
             PhaseUpdateJob job = new()
             {
                 DeltaTime = SystemAPI.Time.DeltaTime,
-                PhaseOutput = phaseArray
+                PhaseOutput = phaseIndicesArray
             };
 
             state.Dependency = job.Schedule(_particleEntityQuery, state.Dependency);
             state.Dependency.Complete();
 
-
-
-            // フェーズカウントの集計。
-            for (int i = 0; i < entityCount; i++)
+            // 結果のGPUバッファへの転送。
+            IGraphicBufferContainer container = GPUBufferContainerLocator.Get();
+            NativeArray<uint> phaseIndices = new(entityCount, Allocator.Temp);
+            for (int i = 0; i < globalState.KernelValue; i++)
             {
-                globalState.PhaseCountArray[i] = phaseArray.Length;
+                int count = 0;
+                for (int j = 0; j < entityCount; j++)
+                {
+                    if (phaseIndicesArray[j] == i)
+                    {
+                        phaseIndices[count] = (uint)j;
+                        count++;
+                    }
+                }
+
+                container.PhaseIndicesBuffers[i].SetData(phaseIndices);
+                globalState.PhaseCountArray[i] = count;
             }
+
+            // メモリの解放。
+            phaseIndicesArray.Dispose();
         }
 
         private EntityQuery _particleEntityQuery;
@@ -61,7 +75,7 @@ namespace Master.Entities
     {
         public float DeltaTime;
 
-        public NativeArray<NativeList<uint>> PhaseOutput;
+        public NativeArray<uint> PhaseOutput;
 
         void Execute(
             [EntityIndexInQuery] int entityIndex,
@@ -72,11 +86,11 @@ namespace Master.Entities
 
             if (phase1Timer.Timer < phase1Timer.ElapsedTime)
             {
-                PhaseOutput[1].Add((uint)entityIndex);
+                PhaseOutput[entityIndex] = 1;
             }
             else
             {
-                PhaseOutput[0].Add((uint)entityIndex);
+                PhaseOutput[entityIndex] = 0;
             }
         }
     }
