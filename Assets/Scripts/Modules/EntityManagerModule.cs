@@ -1,6 +1,6 @@
+using Master.Configs;
 using System;
 using Unity.Entities;
-using UnityEngine;
 
 namespace Master.Entities
 {
@@ -15,14 +15,10 @@ namespace Master.Entities
 
         public void CreateSystems(int count, int kernelValue, Phase1Configs phase1)
         {
-            GlobalState globalState = new(count, kernelValue);
+            GlobalState globalState = new(count, kernelValue, phase1);
             Entity globalStateEntity = _entityManager.CreateEntity(typeof(GlobalState));
             _entityManager.SetComponentData(globalStateEntity, globalState);
             _globalStateQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<GlobalState>());
-
-            ParticleInitializeEntity particleInitializeEntity = new(count, phase1.Duration);
-            Entity particleInitializeDataEntity = _entityManager.CreateEntity(typeof(ParticleInitializeEntity));
-            _entityManager.SetComponentData(particleInitializeDataEntity, particleInitializeEntity);
 
             SystemHandle initializeSystem = _world.CreateSystem<ParticleInitializeSystem>();
             SystemHandle phaseSystem = _world.CreateSystem<PhaseUpdateSystem>();
@@ -48,18 +44,6 @@ namespace Master.Entities
                 globalState.Dispose();
                 _globalStateQuery.Dispose();
             }
-        }
-
-        [Serializable]
-        public struct Phase1Configs
-        {
-            public float Duration => _duration;
-            public float RotationRadius => _rotationRadius;
-
-            [SerializeField, Tooltip("フェーズ１の長さ")]
-            private float _duration;
-            [SerializeField, Tooltip("回転する半径")]
-            private float _rotationRadius;
         }
 
         private readonly World _world;
