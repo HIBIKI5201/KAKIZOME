@@ -12,21 +12,23 @@ namespace Master.Modules
     {
         public GPUBufferContainerModule(int count, int kernelValue)
         {
-            _positionBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, count, sizeof(float) * 3);
-            _velocityBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, count, sizeof(float) * 3);
-            _targetBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, count, sizeof(float) * 3);
+            _positionBuffer = new(GraphicsBuffer.Target.Structured, count, sizeof(float) * 3);
+            _velocityBuffer = new(GraphicsBuffer.Target.Structured, count, sizeof(float) * 3);
+            _targetBuffer = new(GraphicsBuffer.Target.Structured, count, sizeof(float) * 3);
             _count = count;
             _phaseIndicesBuffers = new GraphicsBuffer[kernelValue];
             for (int i = 0; i < kernelValue; i++)
             {
                 _phaseIndicesBuffers[i] = new GraphicsBuffer(GraphicsBuffer.Target.Structured, count, sizeof(uint));
             }
+            _colorBuffer = new(GraphicsBuffer.Target.Structured, count, sizeof(float) * 3);
         }
 
         public GraphicsBuffer PositionBuffer => _positionBuffer;
         public GraphicsBuffer VelocityBuffer => _velocityBuffer;
         public GraphicsBuffer TargetBuffer => _targetBuffer;
         public GraphicsBuffer[] PhaseIndicesBuffers => _phaseIndicesBuffers;
+        public GraphicsBuffer ColorBuffer => _colorBuffer;
 
         public void InitializeData(WordManagerModule word, InitialSphereModule sphere)
         {
@@ -46,13 +48,20 @@ namespace Master.Modules
         public void Dispose()
         {
             _positionBuffer.Dispose();
+            _velocityBuffer.Dispose();
             _targetBuffer.Dispose();
+            foreach (var item in _phaseIndicesBuffers)
+            {
+                item.Dispose();
+            }
+            _colorBuffer.Dispose();
         }
 
         private readonly GraphicsBuffer _positionBuffer;
         private readonly GraphicsBuffer _velocityBuffer;
         private readonly GraphicsBuffer _targetBuffer;
         private readonly GraphicsBuffer[] _phaseIndicesBuffers;
+        private readonly GraphicsBuffer _colorBuffer;
 
         private readonly int _count;
     }
