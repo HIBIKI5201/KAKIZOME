@@ -10,17 +10,19 @@ namespace Master.Modules
     /// </summary>
     public class GPUBufferContainerModule : IDisposable, IGraphicBufferContainer
     {
-        public GPUBufferContainerModule(int count)
+        public GPUBufferContainerModule(int count, int kernelValue)
         {
             _positionBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, count, sizeof(float) * 3);
             _targetBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, count, sizeof(float) * 3);
             _phaseBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, count, sizeof(int));
             _count = count;
+            _phaseIndicesBuffers = new GraphicsBuffer[kernelValue];
         }
 
         public GraphicsBuffer PositionBuffer => _positionBuffer;
         public GraphicsBuffer TargetBuffer => _targetBuffer;
         public GraphicsBuffer PhaseBuffer => _phaseBuffer;
+        public GraphicsBuffer[] PhaseIndicesBuffers => _phaseIndicesBuffers;
 
         public void InitializeData(WordManagerModule word, InitialSphereModule sphere)
         {
@@ -53,6 +55,7 @@ namespace Master.Modules
         private readonly GraphicsBuffer _positionBuffer;
         private readonly GraphicsBuffer _targetBuffer;
         private readonly GraphicsBuffer _phaseBuffer;
+        private readonly GraphicsBuffer[] _phaseIndicesBuffers;
 
         private readonly int _count;
     }
