@@ -54,9 +54,12 @@ namespace Master.Entities
         public struct Phase1Configs
         {
             public float Duration => _duration;
+            public float RotationRadius => _rotationRadius;
 
             [SerializeField, Tooltip("フェーズ１の長さ")]
             private float _duration;
+            [SerializeField, Tooltip("回転する半径")]
+            private float _rotationRadius;
         }
 
         private readonly World _world;
