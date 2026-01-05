@@ -1,5 +1,6 @@
 using Master.Entities;
 using Master.Modules;
+using System;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -66,6 +67,7 @@ namespace Master.Runner
         private void OnDestroy()
         {
             _gpuBufferContainer.Dispose();
+            _entityManager.Dispose();
         }
 
         private void OnDrawGizmos()
