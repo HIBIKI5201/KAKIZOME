@@ -24,8 +24,13 @@ namespace Master.Runner
         [SerializeField, Tooltip("パーティクルが停止する目標地点までの距離")]
         private float _particleStopDistance = 0.1f;
 
-        [Header("フェーズ0設定")]
+        [Header("フェーズ設定")]
+        [Space]
+        [SerializeField]
         private float _initialRadius = 20f;
+        [Space]
+        [SerializeField]
+        private EntityManagerModule.Phase1Configs _phase1Configs;
 
         [Header("モジュールパラメータ設定")]
         [SerializeField, Tooltip("VFXのパラメータ名")]
@@ -101,7 +106,7 @@ namespace Master.Runner
                 _particleCount, _particleSpeed, _particleStopDistance);
             
             GPUBufferContainerLocator.Register(_gpuBufferContainer);
-            _entityManager.CreateSystems(_particleCount, _computeShaderData.KernelDastas.Length);
+            _entityManager.CreateSystems(_particleCount, _computeShaderData.KernelDastas.Length, _phase1Configs);
         }
     }
 }
