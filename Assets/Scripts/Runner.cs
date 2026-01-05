@@ -1,3 +1,4 @@
+using Master.Configs;
 using Master.Entities;
 using Master.Modules;
 using System;
@@ -28,7 +29,7 @@ namespace Master.Runner
         private float _initialRadius = 20f;
         [Space]
         [SerializeField]
-        private EntityManagerModule.Phase1Configs _phase1Configs;
+        private Phase1Configs _phase1Configs;
 
         [Header("モジュールパラメータ設定")]
         [SerializeField, Tooltip("VFXのパラメータ名")]
