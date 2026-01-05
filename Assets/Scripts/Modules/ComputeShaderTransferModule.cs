@@ -34,27 +34,28 @@ namespace Master.Modules
             {
                 _data.Shader.SetBuffer(index, _data.PositionBufferName, bufferContainer.PositionBuffer);
                 _data.Shader.SetBuffer(index, _data.TargetBufferName, bufferContainer.TargetBuffer);
-                _data.Shader.SetBuffer(index, _data.PhaseBufferName, bufferContainer.PhaseBuffer);
             }
 
             _data.Shader.SetInt(_data.ParticleCountName, count);
             _data.Shader.SetFloat(_data.SpeedName, speed);
             _data.Shader.SetFloat(_data.StopDistanceName, stopDistance);
-            _agentCount = count;
         }
 
-        public void Dispatch(float deltaTime, GraphicsBuffer[] phaseBuffers)
+        public void Dispatch(float deltaTime, GraphicsBuffer[] phaseBuffers, ReadOnlySpan<int> counts)
         {
             _data.Shader.SetFloat(_data.DeltaTimeName, deltaTime);
 
-            int threadGroups = Mathf.CeilToInt(_agentCount / 256f);
-            _data.Shader.Dispatch(_kernelIndexs[0], threadGroups, 1, 1);
+            for (int i = 0; i < _kernelIndexs.Length; i++)
+            {
+                if (counts[i] == 0) { continue; }
+
+                int threadGroups = Mathf.CeilToInt(counts[i] / 256f);
+                _data.Shader.Dispatch(_kernelIndexs[i], threadGroups, 1, 1);
+            }
         }
 
         private readonly int[] _kernelIndexs;
         private readonly ComputeShaderData _data;
-
-        private int _agentCount;
 
         [Serializable]
         public struct PhaseKernelData
