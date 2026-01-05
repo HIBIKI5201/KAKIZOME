@@ -8,11 +8,11 @@ namespace Master.Entities
     {
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<GlobalState>();
+            state.RequireForUpdate<ParticleInitializeEntity>();
         }
         public void OnUpdate(ref SystemState state)
         {
-            GlobalState globalState = SystemAPI.GetSingleton<GlobalState>();
+            ParticleInitializeEntity globalState = SystemAPI.GetSingleton<ParticleInitializeEntity>();
 
             for (int i = 0; i < globalState.Count; i++)
             {
