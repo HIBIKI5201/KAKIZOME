@@ -75,6 +75,7 @@ namespace Master.Runner
 
         private void OnDestroy()
         {
+            GPUBufferContainerLocator.Unregister(_gpuBufferContainer);
             _gpuBufferContainer.Dispose();
             _entityManager.Dispose();
         }
