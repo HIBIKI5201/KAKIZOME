@@ -26,6 +26,7 @@ namespace Master.Modules
         public void BindParameter(
             IGraphicBufferContainer bufferContainer,
             int count,
+            Vector3 centerPos, float radius,
             float speed,
             float stopDistance)
         {
@@ -39,6 +40,8 @@ namespace Master.Modules
             }
 
             _data.Shader.SetInt(_data.ParticleCountName, count);
+            _data.Shader.SetVector(_data.CenterPositionName, centerPos);
+            _data.Shader.SetFloat(_data.RotationRadiusName, radius);
             _data.Shader.SetFloat(_data.SpeedName, speed);
             _data.Shader.SetFloat(_data.StopDistanceName, stopDistance);
         }
@@ -85,6 +88,8 @@ namespace Master.Modules
             public string TargetBufferName => _targetBufferName;
             public string PhaseBufferName => _phaseBufferName;
             public string ParticleCountName => _particleCountName;
+            public string CenterPositionName => _centerPositionName;
+            public string RotationRadiusName => _rotationRadiusName;
             public string DeltaTimeName => _deltaTimeName;
             public string SpeedName => _speedName;
             public string StopDistanceName => _stopDistanceName;
@@ -92,13 +97,16 @@ namespace Master.Modules
             public static void Assert(ComputeShaderData data)
             {
                 Debug.Assert(data.Shader != null, "ComputeShader is null");
-                Debug.Assert(!string.IsNullOrEmpty(data.PositionBufferName), "PositionBufferName is null");
-                Debug.Assert(!string.IsNullOrEmpty(data.TargetBufferName), "TargetBufferName is null");
-                Debug.Assert(!string.IsNullOrEmpty(data.PhaseBufferName), "PhaseBufferName is null");
-                Debug.Assert(!string.IsNullOrEmpty(data.ParticleCountName), "ParticleCountName is null");
-                Debug.Assert(!string.IsNullOrEmpty(data.DeltaTimeName), "DeltaTimeName is null");
-                Debug.Assert(!string.IsNullOrEmpty(data.SpeedName), "SpeedName is null");
-                Debug.Assert(!string.IsNullOrEmpty(data.StopDistanceName), "StopDistanceName is null");
+                Debug.Assert(data.KernelDastas.Length == 0, $"{nameof(KernelDastas)} length is 0");
+                Debug.Assert(!string.IsNullOrEmpty(data.PositionBufferName), $"{nameof(PositionBufferName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.TargetBufferName), $"{nameof(TargetBufferName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.PhaseBufferName), $"{nameof(PhaseBufferName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.ParticleCountName), $"{nameof(ParticleCountName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.CenterPositionName), $"{nameof(CenterPositionName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.RotationRadiusName), $"{nameof(RotationRadiusName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.DeltaTimeName), $"{nameof(DeltaTimeName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.SpeedName), $"{nameof(SpeedName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.StopDistanceName), $"{nameof(StopDistanceName)} is null");
             }
 
             [SerializeField, Tooltip("シェーダー")]
@@ -117,6 +125,10 @@ namespace Master.Modules
             private string _phaseBufferName;
             [SerializeField, Tooltip("パーティクル数パラメータ名")]
             private string _particleCountName;
+            [SerializeField, Tooltip("中心位置パラメータ名")]
+            private string _centerPositionName;
+            [SerializeField, Tooltip("回転半径")]
+            private string _rotationRadiusName;
             [SerializeField, Tooltip("デルタタイム名")]
             private string _deltaTimeName;
             [SerializeField, Tooltip("速度パラメータ名")]
