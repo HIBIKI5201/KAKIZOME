@@ -1,8 +1,8 @@
-#pragma kernel CSMain
+#pragma kernel Phase0
+#pragma kernel Phase1
 
 RWStructuredBuffer<float3> PositionBuffer;
 RWStructuredBuffer<float3> TargetBuffer;
-RWStructuredBuffer<int> PhaseBuffer;
 
 float DeltaTime;
 uint ParticleCount;
@@ -10,30 +10,52 @@ uint ParticleCount;
 float StopDistance;
 float Speed;
 
-[numthreads(256, 1, 1)]
-void CSMain(uint id : SV_DispatchThreadID)
+RWStructuredBuffer<uint> Phase0Indices;
+uint Phase0Count;
+RWStructuredBuffer<uint> Phase1Indices;
+uint Phase1Count;
+
+[numthreads(64, 1, 1)]
+void Phase0(uint id : SV_DispatchThreadID)
 {
-    if (id >= ParticleCount) { return; }
+    if (id >= Phase0Count) { return; }
     
-    float3 target = TargetBuffer[(int) id];
-    float3 pos = PositionBuffer[id];
+    // インデックスバッファからパーティクルのインデックスを取得。
+    uint particleIndex = Phase0Indices[id];
     
-    switch (PhaseBuffer[(int) id])
+    float3 target = TargetBuffer[particleIndex];
+    float3 pos = PositionBuffer[particleIndex];
+    
+    float3 dir = normalize(target - pos);
+         
+    // ターゲットと逆方向に移動。
+    pos -= dir * Speed * DeltaTime;
+    PositionBuffer[particleIndex] = pos;
+}
+
+[numthreads(64, 1, 1)]
+void Phase1(uint id : SV_DispatchThreadID)
+{
+    if (id >= Phase1Count) { return; }
+    
+    // インデックスバッファからパーティクルのインデックスを取得。
+    uint particleIndex = Phase1Indices[id];
+    
+    float3 target = TargetBuffer[particleIndex];
+    float3 pos = PositionBuffer[particleIndex];
+    
+    float3 diff = target - pos;
+    float dist = length(diff);
+    float3 dir = diff / dist;
+    
+    if (dist <= StopDistance)
     {
-        case 0:
-            break;
-        case 1:
-            float3 dir = normalize(target - pos);
-    
-            if (distance(target, pos) <= StopDistance)
-            {
-                PositionBuffer[(int) id] = target;
-                return;
-            }
-            
-            pos += dir * Speed * DeltaTime;
-            PositionBuffer[(int) id] = pos;
-            break;
+        // ストップしたらターゲット位置にスナップ。
+        PositionBuffer[particleIndex] = target;
+        return;
     }
     
+    // ターゲットに向かって移動。
+    pos += dir * Speed * DeltaTime;
+    PositionBuffer[particleIndex] = pos;
 }
