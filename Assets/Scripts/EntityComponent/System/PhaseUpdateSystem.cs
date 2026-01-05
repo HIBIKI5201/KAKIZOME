@@ -1,4 +1,5 @@
 using Master.Modules;
+using System.Globalization;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -34,15 +35,23 @@ namespace Master.Entities
             if (entityCount == 0) { return; }
             NativeArray<uint> phaseIndicesArray = new(entityCount, Allocator.TempJob);
 
+            var ecb = SystemAPI
+                .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
+
             // ジョブの設定とスケジューリング。
             PhaseUpdateJob job = new()
             {
+                ECB = ecb.AsParallelWriter(),
                 DeltaTime = SystemAPI.Time.DeltaTime,
                 PhaseOutput = phaseIndicesArray
             };
 
             state.Dependency = job.Schedule(_particleEntityQuery, state.Dependency);
             state.Dependency.Complete();
+
+            ecb.Playback(state.EntityManager);
+            ecb.Dispose();
 
             // 結果をGPUバッファとGlobalStateへ転送。
             IGraphicBufferContainer container = GPUBufferContainerLocator.Get();
@@ -74,11 +83,13 @@ namespace Master.Entities
     public partial struct PhaseUpdateJob : IJobEntity
     {
         public float DeltaTime;
+        public EntityCommandBuffer.ParallelWriter ECB;
 
         public NativeArray<uint> PhaseOutput;
 
         void Execute(
             [EntityIndexInQuery] int entityIndex,
+            Entity entity,
             ref ParticleEntity particle,
             ref Phase1TimerEntity phase1Timer)
         {
@@ -87,6 +98,7 @@ namespace Master.Entities
             if (phase1Timer.Timer < phase1Timer.ElapsedTime)
             {
                 PhaseOutput[entityIndex] = 1;
+                ECB.RemoveComponent<Phase1TimerEntity>(entityIndex, entity);
             }
             else
             {
