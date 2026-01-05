@@ -17,7 +17,7 @@ namespace Master.Entities
             for (int i = 0; i < globalState.Count; i++)
             {
                 Entity entity = state.EntityManager.CreateEntity();
-                state.EntityManager.AddComponentData(entity, new ParticleEntity { Phase = 0 });
+                state.EntityManager.AddComponentData(entity, new ParticleEntity(i));
 
                 state.EntityManager.AddComponentData(entity, new Phase1TimerEntity(globalState.Phase1Duration));
             }
