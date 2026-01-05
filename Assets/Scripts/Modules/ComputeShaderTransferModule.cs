@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 
 namespace Master.Modules
@@ -15,11 +16,11 @@ namespace Master.Modules
             _data = data;
 
             // カーネルインデックス取得。
-            string[] kernelNames = data.KernelNames;
+            PhaseKernelData[] kernelNames = data.KernelDastas;
             _kernelIndexs = new int[kernelNames.Length];
             for (int i = 0; i < kernelNames.Length; i++)
             {
-                _kernelIndexs[i] = data.Shader.FindKernel(kernelNames[i]);
+                _kernelIndexs[i] = data.Shader.FindKernel(kernelNames[i].KernelName);
             }
         }
 
@@ -56,10 +57,25 @@ namespace Master.Modules
         private int _agentCount;
 
         [Serializable]
+        public struct PhaseKernelData
+        {
+            public string KernelName => _kernelName;
+            public string IndexBufferName => _indexBufferName;
+            public string CounterName => _counterName;
+
+            [SerializeField, Tooltip("カーネル名")]
+            private string _kernelName;
+            [SerializeField, Tooltip("インデックスバッファ名")]
+            private string _indexBufferName;
+            [SerializeField, Tooltip("カウンター名")]
+            private string _counterName;
+        }
+
+        [Serializable]
         public struct ComputeShaderData
         {
             public ComputeShader Shader => _shader;
-            public string[] KernelNames => _kernelNames;
+            public PhaseKernelData[] KernelDastas => _kernelNames;
             public string PositionBufferName => _positionBufferName;
             public string TargetBufferName => _targetBufferName;
             public string PhaseBufferName => _phaseBufferName;
@@ -85,7 +101,7 @@ namespace Master.Modules
 
             [Space]
             [SerializeField, Tooltip("カーネル名")]
-            private string[] _kernelNames;
+            private PhaseKernelData[] _kernelNames;
 
             [Space]
             [SerializeField, Tooltip("位置バッファ名")]
