@@ -13,6 +13,7 @@ namespace Master.Modules
         public GPUBufferContainerModule(int count, int kernelValue)
         {
             _positionBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, count, sizeof(float) * 3);
+            _velocityBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, count, sizeof(float) * 3);
             _targetBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, count, sizeof(float) * 3);
             _count = count;
             _phaseIndicesBuffers = new GraphicsBuffer[kernelValue];
@@ -23,6 +24,7 @@ namespace Master.Modules
         }
 
         public GraphicsBuffer PositionBuffer => _positionBuffer;
+        public GraphicsBuffer VelocityBuffer => _velocityBuffer;
         public GraphicsBuffer TargetBuffer => _targetBuffer;
         public GraphicsBuffer[] PhaseIndicesBuffers => _phaseIndicesBuffers;
 
@@ -48,6 +50,7 @@ namespace Master.Modules
         }
 
         private readonly GraphicsBuffer _positionBuffer;
+        private readonly GraphicsBuffer _velocityBuffer;
         private readonly GraphicsBuffer _targetBuffer;
         private readonly GraphicsBuffer[] _phaseIndicesBuffers;
 
