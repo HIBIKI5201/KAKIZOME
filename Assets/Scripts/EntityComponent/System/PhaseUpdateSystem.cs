@@ -28,10 +28,11 @@ namespace Master.Entities
 
         public void OnUpdate(ref SystemState state)
         {
+            GlobalState globalState = SystemAPI.GetSingleton<GlobalState>();
+            NativeArray<int> phaseArray = globalState.PhaseArray;
+
             int entityCount = _particleEntityQuery.CalculateEntityCount();
             if (entityCount == 0) { return; }
-
-            NativeArray<int> phaseArray = new(entityCount, Allocator.TempJob);
 
             // ジョブの設定とスケジューリング。
             PhaseUpdateJob job = new()
@@ -46,8 +47,6 @@ namespace Master.Entities
             // 結果をGPUバッファに転送。
             IGraphicBufferContainer container = GPUBufferContainerLocator.Get();
             container.PhaseBuffer.SetData(phaseArray);
-
-            phaseArray.Dispose();
         }
 
         private EntityQuery _particleEntityQuery;
