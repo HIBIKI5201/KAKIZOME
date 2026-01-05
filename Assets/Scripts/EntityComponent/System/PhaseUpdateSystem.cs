@@ -1,7 +1,9 @@
+using Master.Configs;
 using Master.Modules;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using UnityEngine.Rendering;
 
 namespace Master.Entities
 {
@@ -39,6 +41,12 @@ namespace Master.Entities
             int sumEntityCount = phase1EntityCount + phase2EntityCount;
             if (sumEntityCount == 0) { return; }
             NativeArray<int> phaseArray = new(particleCount, Allocator.TempJob);
+            
+            var initJob = new InitializePhaseArrayJob
+            {
+                PhaseOutput = phaseArray
+            };
+            state.Dependency = initJob.Schedule(state.Dependency);
 
             var ecb = SystemAPI
                 .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
@@ -49,6 +57,7 @@ namespace Master.Entities
             Phase1UpdateJob job = new()
             {
                 ECB = ecb.AsParallelWriter(),
+                Phase2Configs = globalState.Phase2Configs,
                 DeltaTime = delta,
                 PhaseOutput = phaseArray
             };
@@ -93,11 +102,23 @@ namespace Master.Entities
         private EntityQuery _phase1EntityQuery;
         private EntityQuery _phase2EntityQuery;
     }
+    
+    [BurstCompile]
+    public partial struct InitializePhaseArrayJob : IJobEntity
+    {
+        public NativeArray<int> PhaseOutput;
+
+        void Execute(in ParticleEntity particle)
+        {
+            PhaseOutput[particle.Index] = particle.Phase;
+        }
+    }
 
     [BurstCompile]
     public partial struct Phase1UpdateJob : IJobEntity
     {
         public float DeltaTime;
+        public Phase2Configs Phase2Configs;
         public EntityCommandBuffer.ParallelWriter ECB;
 
         public NativeArray<int> PhaseOutput;
@@ -112,14 +133,13 @@ namespace Master.Entities
 
             if (timer.Timer < timer.ElapsedTime)
             {
-                PhaseOutput[index] = 2;
+                particle.Phase = 2;
                 ECB.RemoveComponent<Phase1TimerEntity>(index, entity);
-                ECB.AddComponent<Phase2TimerEntity>(index, entity);
+                Phase2TimerEntity newTimer = new Phase2TimerEntity(Phase2Configs.Duration);
+                ECB.AddComponent(index, entity, newTimer);
             }
-            else
-            {
-                PhaseOutput[index] = particle.Phase; // 元のフェーズ。
-            }
+
+            PhaseOutput[index] = particle.Phase;
         }
     }
 
@@ -142,13 +162,11 @@ namespace Master.Entities
 
             if (timer.Timer < timer.ElapsedTime)
             {
-                PhaseOutput[index] = 3;
+                particle.Phase = 3;
                 ECB.RemoveComponent<Phase2TimerEntity>(index, entity);
             }
-            else
-            {
-                PhaseOutput[index] = particle.Phase; // 元のフェーズ。
-            }
+
+            PhaseOutput[index] = particle.Phase;
         }
     }
 
