@@ -205,13 +205,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 7.5, z: -30}
+  m_LocalRotation: {x: 0.17364816, y: 0, z: 0, w: 0.9848078}
+  m_LocalPosition: {x: 0, y: 22, z: -33}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 20, y: 0, z: 0}
 --- !u!114 &330585547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -464,27 +464,42 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Master.Runner
   _centerPosition: {x: 0, y: 7.5, z: 0}
-  _particleCount: 100000
-  _particleSpeed: 4
+  _particleCount: 300000
+  _particleSpeed: 8
   _particleStopDistance: 0.1
+  _initialRadius: 5
   _phase1Configs:
-    _duration: 1
+    _duration: 3
+    _durationRange: {x: -1, y: 1}
+    _rotationRadius: 15
+  _phase2Configs:
+    _duration: 8
   _vfxParameterNames:
     _positionBuffer: PositionBuffer
     _particleCount: ParticleCount
+    _colorBuffer: ColorBuffer
   _computeShaderData:
     _shader: {fileID: 7200000, guid: f6f99a9e72d7c46449ea6230682cd4d2, type: 3}
-    _kernelNames:
-    - _kernelName: Phase0
-      _indexBufferName: Phase0Indices
-      _counterName: Phase0Count
+    _phaseKernelNames:
     - _kernelName: Phase1
       _indexBufferName: Phase1Indices
       _counterName: Phase1Count
+    - _kernelName: Phase2
+      _indexBufferName: Phase2Indices
+      _counterName: Phase2Count
+    - _kernelName: PhaseFinal
+      _indexBufferName: PhaseFinalIndices
+      _counterName: PhaseFinalCount
+    _colorKernelName: ColorUpdate
     _positionBufferName: PositionBuffer
+    _velocityBufferName: VelocityBuffer
     _targetBufferName: TargetBuffer
     _phaseBufferName: PhaseBuffer
+    _colorBufferName: ColorBuffer
     _particleCountName: ParticleCount
+    _centerPositionName: CenterPosition
+    _rotationRadiusName: Radius
+    _timeName: Time
     _deltaTimeName: DeltaTime
     _speedName: Speed
     _stopDistanceName: StopDistance
@@ -584,7 +599,10 @@ VisualEffect:
   m_ResourceVersion: 1
   m_PropertySheet:
     m_Float:
-      m_Array: []
+      m_Array:
+      - m_Value: 2
+        m_Name: Emmision
+        m_Overridden: 1
     m_Vector2f:
       m_Array: []
     m_Vector3f:
@@ -593,11 +611,14 @@ VisualEffect:
       m_Array:
       - m_Value: {x: 4, y: 0, z: 4, w: 1}
         m_Name: Color
-        m_Overridden: 1
+        m_Overridden: 0
     m_Uint:
       m_Array: []
     m_Int:
-      m_Array: []
+      m_Array:
+      - m_Value: 1
+        m_Name: ParticleCount
+        m_Overridden: 0
     m_Matrix4x4f:
       m_Array: []
     m_AnimationCurve:
