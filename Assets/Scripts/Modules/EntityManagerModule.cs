@@ -1,10 +1,11 @@
 using Master.Modules;
+using System;
 using Unity.Entities;
 using UnityEngine.LightTransport;
 
 namespace Master.Entities
 {
-    public class EntityManagerModule
+    public class EntityManagerModule : IDisposable
     {
         public EntityManagerModule(World world)
         {
@@ -31,6 +32,16 @@ namespace Master.Entities
         public void UpdateSystems()
         {
             _group.Update();
+        }
+
+        public void Dispose()
+        {
+            _world.DestroySystemManaged(_group);
+            using var query = _entityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<GlobalState>()
+            );
+            GlobalState globalState = query.GetSingleton<GlobalState>();
+            globalState.Dispose();
         }
 
         private readonly World _world;
