@@ -100,8 +100,9 @@ namespace Master.Runner
         private void DependencyInjection()
         {
             _visualEffectTransfer.BindParameter(_gpuBufferContainer.PositionBuffer, _particleCount);
-            _computeShaderTransfer.BindParameter(_gpuBufferContainer,
-                _particleCount, _particleSpeed, _particleStopDistance);
+            _computeShaderTransfer.BindParameter(_gpuBufferContainer, _particleCount,
+                _centerPosition, _phase1Configs.RotationRadius,
+                _particleSpeed, _particleStopDistance);
 
             GPUBufferContainerLocator.Register(_gpuBufferContainer);
             _entityManager.CreateSystems(_particleCount, _computeShaderData.KernelDastas.Length, _phase1Configs);
