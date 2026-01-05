@@ -49,6 +49,11 @@ namespace Master.Entities
                 globalState.Dispose();
                 _globalStateQuery.Dispose();
             }
+
+            if (_group.Enabled)
+            {
+                _world.DestroySystemManaged(_group);
+            }
         }
 
         private readonly World _world;
