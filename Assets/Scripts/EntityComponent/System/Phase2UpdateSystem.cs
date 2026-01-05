@@ -11,8 +11,6 @@ namespace Master.Entities
     [UpdateAfter(typeof(Phase1UpdateSystem))]
     public partial struct Phase2UpdateSystem : ISystem
     {
-        private EntityQuery _phase2EntityQuery;
-
         public void OnCreate(ref SystemState state)
         {
             _phase2EntityQuery = state.GetEntityQuery(
@@ -35,6 +33,13 @@ namespace Master.Entities
 
             state.Dependency = job.ScheduleParallel(_phase2EntityQuery, state.Dependency);
         }
+
+        public void OnDestroy(ref SystemState state)
+        {
+            _phase2EntityQuery.Dispose();
+        }
+
+        private EntityQuery _phase2EntityQuery;
     }
 
     [BurstCompile]

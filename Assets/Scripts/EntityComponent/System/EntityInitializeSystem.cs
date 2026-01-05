@@ -15,6 +15,7 @@ namespace Master.Entities
         {
             state.RequireForUpdate<GlobalState>();
         }
+
         public void OnUpdate(ref SystemState state)
         {
             GlobalState globalState = SystemAPI.GetSingleton<GlobalState>();
