@@ -1,8 +1,6 @@
-using Master.Modules;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Master.Entities
@@ -33,8 +31,8 @@ namespace Master.Entities
 
             int entityCount = _particleEntityQuery.CalculateEntityCount();
             if (entityCount == 0) { return; }
-            NativeArray<int> phaseArray = new(entityCount, Allocator.TempJob);
-
+            NativeArray<NativeList<uint>> phaseArray = new(globalState.KernelValue, Allocator.TempJob);
+            phaseArray.FillArray(new NativeList<uint>(Allocator.TempJob));
 
             // ジョブの設定とスケジューリング。
             PhaseUpdateJob job = new()
@@ -46,12 +44,12 @@ namespace Master.Entities
             state.Dependency = job.Schedule(_particleEntityQuery, state.Dependency);
             state.Dependency.Complete();
 
+
+
             // フェーズカウントの集計。
-            globalState.PhaseCountArray.FillArray(0);
             for (int i = 0; i < entityCount; i++)
             {
-                int phase = phaseArray[i];
-                globalState.PhaseCountArray[phase]++;
+                globalState.PhaseCountArray[i] = phaseArray.Length;
             }
         }
 
@@ -63,7 +61,7 @@ namespace Master.Entities
     {
         public float DeltaTime;
 
-        public NativeArray<int> PhaseOutput;
+        public NativeArray<NativeList<uint>> PhaseOutput;
 
         void Execute(
             [EntityIndexInQuery] int entityIndex,
@@ -74,10 +72,12 @@ namespace Master.Entities
 
             if (phase1Timer.Timer < phase1Timer.ElapsedTime)
             {
-                particle.Phase = 1;
+                PhaseOutput[1].Add((uint)entityIndex);
             }
-
-            PhaseOutput[entityIndex] = particle.Phase;
+            else
+            {
+                PhaseOutput[0].Add((uint)entityIndex);
+            }
         }
     }
 }
