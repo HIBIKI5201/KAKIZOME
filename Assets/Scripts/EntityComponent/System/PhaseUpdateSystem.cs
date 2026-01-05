@@ -3,6 +3,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Master.Entities
 {
@@ -29,10 +30,11 @@ namespace Master.Entities
         public void OnUpdate(ref SystemState state)
         {
             GlobalState globalState = SystemAPI.GetSingleton<GlobalState>();
-            NativeArray<int> phaseArray = globalState.PhaseArray;
 
             int entityCount = _particleEntityQuery.CalculateEntityCount();
             if (entityCount == 0) { return; }
+            NativeArray<int> phaseArray = new(entityCount, Allocator.TempJob);
+
 
             // ジョブの設定とスケジューリング。
             PhaseUpdateJob job = new()
@@ -44,9 +46,13 @@ namespace Master.Entities
             state.Dependency = job.Schedule(_particleEntityQuery, state.Dependency);
             state.Dependency.Complete();
 
-            // 結果をGPUバッファに転送。
-            IGraphicBufferContainer container = GPUBufferContainerLocator.Get();
-            container.PhaseBuffer.SetData(phaseArray);
+            // フェーズカウントの集計。
+            globalState.PhaseCountArray.FillArray(0);
+            for (int i = 0; i < entityCount; i++)
+            {
+                int phase = phaseArray[i];
+                globalState.PhaseCountArray[phase]++;
+            }
         }
 
         private EntityQuery _particleEntityQuery;
