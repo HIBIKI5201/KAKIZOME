@@ -162,11 +162,8 @@ namespace Master.Modules
             {
                 Random rand = new(Seed + (uint)index);
 
-                // 担当区画の中からランダムな値を取得する（層化サンプリング法）
-                float randomInStratum = rand.NextFloat();
-                float sample = (index + randomInStratum) / Output.Length;
-
                 // 面積割合に基づいてどの三角形かを選択。
+                float sample = rand.NextFloat();
                 int triIndex = BinarySearch(CumulativeAreas, sample);
 
                 TriangleForJob tri = Triangles[triIndex];
