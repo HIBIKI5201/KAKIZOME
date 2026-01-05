@@ -37,7 +37,6 @@ namespace Master.Entities
 
         public void Dispose()
         {
-            _world.DestroySystemManaged(_group);
             GlobalState globalState = _globalStateQuery.GetSingleton<GlobalState>();
             globalState.Dispose();
             _globalStateQuery.Dispose();
