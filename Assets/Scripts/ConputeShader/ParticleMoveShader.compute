@@ -1,5 +1,6 @@
-#pragma kernel Phase0
 #pragma kernel Phase1
+#pragma kernel Phase2
+#pragma kernel ToWord
 
 RWStructuredBuffer<float3> PositionBuffer;
 RWStructuredBuffer<float3> TargetBuffer;
@@ -10,33 +11,62 @@ uint ParticleCount;
 float StopDistance;
 float Speed;
 
-RWStructuredBuffer<uint> Phase0Indices;
-uint Phase0Count;
 RWStructuredBuffer<uint> Phase1Indices;
 uint Phase1Count;
+float3 CenterPosition;
+float Radius;
 
-[numthreads(64, 1, 1)]
-void Phase0(uint id : SV_DispatchThreadID)
-{
-    if (id >= Phase0Count) { return; }
-    
-    // インデックスバッファからパーティクルのインデックスを取得。
-    uint particleIndex = Phase0Indices[id];
-    
-    float3 target = TargetBuffer[particleIndex];
-    float3 pos = PositionBuffer[particleIndex];
-    
-    float3 dir = normalize(target - pos);
-         
-    // ターゲットと逆方向に移動。
-    pos -= dir * Speed * DeltaTime;
-    PositionBuffer[particleIndex] = pos;
-}
+RWStructuredBuffer<uint> Phase2Indices;
+uint Phase2Count;
+
 
 [numthreads(64, 1, 1)]
 void Phase1(uint id : SV_DispatchThreadID)
 {
     if (id >= Phase1Count) { return; }
+    
+    // インデックスバッファからパーティクルのインデックスを取得。
+    uint particleIndex = Phase1Indices[id];
+    
+    float3 pos = PositionBuffer[particleIndex];
+    
+    float3 dir = normalize(CenterPosition - pos);
+         
+    // 中心から遠ざかる。
+    pos -= dir * Speed * DeltaTime;
+    PositionBuffer[particleIndex] = pos;
+}
+
+[numthreads(64, 1, 1)]
+void Phase2(uint id : SV_DispatchThreadID)
+{
+    if (id > Phase2Count) { return; }
+    
+    // インデックスバッファからパーティクルのインデックスを取得。
+    uint particleIndex = Phase2Indices[id];
+    
+    float3 pos = PositionBuffer[particleIndex];
+    
+    float3 dir = pos - CenterPosition;
+    float angle = atan2(dir.z, dir.x);
+    angle += Speed * DeltaTime;
+    
+    float3 newPos;
+    newPos.x = CenterPosition.x + cos(angle) * Radius;
+    newPos.z = CenterPosition.z + sin(angle) * Radius;
+
+    // Yは固定（リング状）
+    newPos.y = pos.y;
+    PositionBuffer[particleIndex] = newPos;
+}
+
+[numthreads(64, 1, 1)]
+void ToWord(uint id : SV_DispatchThreadID)
+{
+    if (id >= Phase1Count)
+    {
+        return;
+    }
     
     // インデックスバッファからパーティクルのインデックスを取得。
     uint particleIndex = Phase1Indices[id];
