@@ -30,6 +30,8 @@ namespace Master.Runner
         [Space]
         [SerializeField]
         private Phase1Configs _phase1Configs;
+        [SerializeField]
+        private Phase2Configs _phase2Configs;
 
         [Header("モジュールパラメータ設定")]
         [SerializeField, Tooltip("VFXのパラメータ名")]
@@ -107,7 +109,8 @@ namespace Master.Runner
                 _particleSpeed, _particleStopDistance);
 
             GPUBufferContainerLocator.Register(_gpuBufferContainer);
-            _entityManager.CreateSystems(_particleCount, _computeShaderData.KernelDastas.Length, _phase1Configs);
+            _entityManager.CreateSystems(_particleCount, _computeShaderData.KernelDastas.Length, 
+                _phase1Configs, _phase2Configs);
         }
     }
 }
