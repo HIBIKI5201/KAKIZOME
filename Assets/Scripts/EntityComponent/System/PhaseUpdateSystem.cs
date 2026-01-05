@@ -32,12 +32,13 @@ namespace Master.Entities
         public void OnUpdate(ref SystemState state)
         {
             GlobalState globalState = SystemAPI.GetSingleton<GlobalState>();
+            int particleCount = globalState.Count;
 
             int phase1EntityCount = _phase1EntityQuery.CalculateEntityCount();
             int phase2EntityCount = _phase2EntityQuery.CalculateEntityCount();
             int sumEntityCount = phase1EntityCount + phase2EntityCount;
             if (sumEntityCount == 0) { return; }
-            NativeArray<int> phaseArray = new(sumEntityCount, Allocator.TempJob);
+            NativeArray<int> phaseArray = new(particleCount, Allocator.TempJob);
 
             var ecb = SystemAPI
                 .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
@@ -67,11 +68,11 @@ namespace Master.Entities
 
             // 結果をGPUバッファとGlobalStateへ転送。
             IGraphicBufferContainer container = GPUBufferContainerLocator.Get();
-            NativeArray<uint> phaseIndices = new(sumEntityCount, Allocator.Temp);
+            NativeArray<uint> phaseIndices = new(particleCount, Allocator.Temp);
             for (int i = 0; i < globalState.KernelValue; i++)
             {
                 int count = 0;
-                for (int j = 0; j < sumEntityCount; j++)
+                for (int j = 0; j < particleCount; j++)
                 {
                     // phaseIndicesArrayの値は1始まりなので-1して比較。
                     if (phaseArray[j] - 1 == i)
