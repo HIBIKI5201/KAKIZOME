@@ -13,9 +13,10 @@ namespace Master.Entities
             _group = _world.CreateSystemManaged<ParticleSystemGroup>();
         }
 
-        public void CreateSystems(int count, int kernelValue, Phase1Configs phase1)
+        public void CreateSystems(int count, int kernelValue,
+            Phase1Configs phase1, Phase2Configs phase2)
         {
-            GlobalState globalState = new(count, kernelValue, phase1);
+            GlobalState globalState = new(count, kernelValue, phase1, phase2);
             Entity globalStateEntity = _entityManager.CreateEntity(typeof(GlobalState));
             _entityManager.SetComponentData(globalStateEntity, globalState);
             _globalStateQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<GlobalState>());
