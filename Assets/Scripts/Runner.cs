@@ -1,9 +1,7 @@
 using Master.Entities;
 using Master.Modules;
 using System;
-using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -104,7 +102,7 @@ namespace Master.Runner
             _visualEffectTransfer.BindParameter(_gpuBufferContainer.PositionBuffer, _particleCount);
             _computeShaderTransfer.BindParameter(_gpuBufferContainer,
                 _particleCount, _particleSpeed, _particleStopDistance);
-            
+
             GPUBufferContainerLocator.Register(_gpuBufferContainer);
             _entityManager.CreateSystems(_particleCount, _computeShaderData.KernelDastas.Length, _phase1Configs);
         }

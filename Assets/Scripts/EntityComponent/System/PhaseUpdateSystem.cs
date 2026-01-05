@@ -1,9 +1,7 @@
 using Master.Modules;
-using System.Globalization;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using UnityEngine.Rendering;
 
 namespace Master.Entities
 {

@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using UnityEngine;
 
 namespace Master.Modules
@@ -97,7 +96,7 @@ namespace Master.Modules
                 Debug.Assert(!string.IsNullOrEmpty(data.TargetBufferName), "TargetBufferName is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.PhaseBufferName), "PhaseBufferName is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.ParticleCountName), "ParticleCountName is null");
-                Debug.Assert(!string.IsNullOrEmpty(data.DeltaTimeName), "DeltaTimeName is null");            
+                Debug.Assert(!string.IsNullOrEmpty(data.DeltaTimeName), "DeltaTimeName is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.SpeedName), "SpeedName is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.StopDistanceName), "StopDistanceName is null");
             }
