@@ -25,10 +25,11 @@ namespace Master.Modules
         /// </summary>
         /// <param name="positionBuffer"></param>
         /// <param name="count"></param>
-        public void BindParameter(GraphicsBuffer positionBuffer, int count)
+        public void BindParameter(IGraphicBufferContainer container, int count)
         {
             // バッファとパーティクル数をVFXにバインド。
-            _vfx.SetGraphicsBuffer(_paramNames.PositionBuffer, positionBuffer);
+            _vfx.SetGraphicsBuffer(_paramNames.PositionBuffer, container.PositionBuffer);
+            _vfx.SetGraphicsBuffer(_paramNames.ColorBuffer, container.ColorBuffer);
             _vfx.SetInt(_paramNames.ParticleCount, count);
         }
 
@@ -48,6 +49,7 @@ namespace Master.Modules
         {
             public string PositionBuffer => _positionBuffer;
             public string ParticleCount => _particleCount;
+            public string ColorBuffer => _colorBuffer;
 
             public static void Assert(VFXParameterNames param)
             {
@@ -59,6 +61,8 @@ namespace Master.Modules
             private string _positionBuffer;
             [SerializeField, Tooltip("パーティクル量のパラメータ名")]
             private string _particleCount;
+            [SerializeField, Tooltip("色バッファのパラメータ名")]
+            private string _colorBuffer;
         }
     }
 }
