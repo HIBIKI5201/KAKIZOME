@@ -1,7 +1,5 @@
 using Master.Configs;
 using System;
-using Unity.Cinemachine;
-using Unity.Entities.UniversalDelegates;
 using UnityEngine;
 
 namespace Master.Modules
@@ -32,24 +30,36 @@ namespace Master.Modules
             int count,
             PhaseConfigRepository phaseConfig)
         {
+            ComputeShader shader = _data.Shader;
+
+            #region フェーズカーネルのバインド
             for (int i = 0; i < _phaseKernelIndexs.Length; i++)
             {
                 int index = _phaseKernelIndexs[i];
-                _data.Shader.SetBuffer(index, _data.PositionBufferName, bufferContainer.PositionBuffer);
-                _data.Shader.SetBuffer(index, _data.VelocityBufferName, bufferContainer.VelocityBuffer);
-                _data.Shader.SetBuffer(index, _data.TargetBufferName, bufferContainer.TargetBuffer);
+                shader.SetBuffer(index, _data.PositionBufferName, bufferContainer.PositionBuffer);
+                shader.SetBuffer(index, _data.VelocityBufferName, bufferContainer.VelocityBuffer);
+                shader.SetBuffer(index, _data.TargetBufferName, bufferContainer.TargetBuffer);
 
-                _data.Shader.SetBuffer(index, _data.PhaseKernelDastas[i].IndexBufferName, bufferContainer.PhaseIndicesBuffers[i]);
+                shader.SetBuffer(index, _data.PhaseKernelDastas[i].IndexBufferName, bufferContainer.PhaseIndicesBuffers[i]);
             }
+            #endregion
 
-            _data.Shader.SetBuffer(_colorKernelIndex, _data.PositionBufferName, bufferContainer.PositionBuffer);
-            _data.Shader.SetBuffer(_colorKernelIndex, _data.ColorBufferName, bufferContainer.ColorBuffer);
+            #region 色カーネルのバインド
+            shader.SetBuffer(_colorKernelIndex, _data.PositionBufferName, bufferContainer.PositionBuffer);
+            shader.SetBuffer(_colorKernelIndex, _data.ColorBufferName, bufferContainer.ColorBuffer);
+            #endregion
 
-            _data.Shader.SetInt(_data.ParticleCountName, count);
-            _data.Shader.SetVector(_data.CenterPositionName, phaseConfig.GlobalConfigs.CenterPosition);
-            _data.Shader.SetFloat(_data.RotationRadiusName, phaseConfig.Phase1Configs.RotationRadius);
-            _data.Shader.SetFloat(_data.SpeedName, phaseConfig.GlobalConfigs.ParticleSpeed);
-            _data.Shader.SetFloat(_data.StopDistanceName, phaseConfig.PhaseFinalConfigs.StopDistance);
+            #region パラメータ類のバインド
+            // グローバル。
+            shader.SetInt(_data.ParticleCountName, count);
+            shader.SetVector(_data.CenterPositionName, phaseConfig.GlobalConfigs.CenterPosition);
+            shader.SetFloat(_data.SpeedName, phaseConfig.GlobalConfigs.ParticleSpeed);
+            // フェーズ2。
+            shader.SetFloat(_data.TorusMaxRadiusName, phaseConfig.Phase2Configs.TorusMaxRadius);
+            shader.SetFloat(_data.TorusMinRadiusName, phaseConfig.Phase2Configs.TorusMinRadius);
+            // フェーズファイナル。
+            shader.SetFloat(_data.StopDistanceName, phaseConfig.PhaseFinalConfigs.StopDistance);
+            #endregion
         }
 
         public void Dispatch(float deltaTime, float time,
@@ -108,28 +118,28 @@ namespace Master.Modules
             public string CenterPositionName => _centerPositionName;
             public string TimeName => _timeName;
             public string DeltaTimeName => _deltaTimeName;
-            public string RotationRadiusName => _rotationRadiusName;
             public string StopDistanceName => _stopDistanceName;
-            public string TorusRadiusName => _torusRadiusName;
+            public string TorusMaxRadiusName => _torusMaxRadiusName;
+            public string TorusMinRadiusName => _torusMinRadiusName;
 
             public static void Assert(ComputeShaderData data)
             {
                 Debug.Assert(data.Shader != null, "ComputeShader is null");
                 Debug.Assert(data.PhaseKernelDastas.Length != 0, $"{nameof(PhaseKernelDastas)} length is 0");
-                Debug.Assert(!string.IsNullOrEmpty(data.ColorKernelName), $"{nameof(PositionBufferName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.ColorKernelName), $"{nameof(ColorKernelName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.PositionBufferName), $"{nameof(PositionBufferName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.VelocityBufferName), $"{nameof(VelocityBufferName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.TargetBufferName), $"{nameof(TargetBufferName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.PhaseBufferName), $"{nameof(PhaseBufferName)} is null");
-                Debug.Assert(!string.IsNullOrEmpty(data.ColorBufferName), $"{nameof(PhaseBufferName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.ColorBufferName), $"{nameof(ColorBufferName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.ParticleCountName), $"{nameof(ParticleCountName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.SpeedName), $"{nameof(SpeedName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.CenterPositionName), $"{nameof(CenterPositionName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.TimeName), $"{nameof(TimeName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.DeltaTimeName), $"{nameof(DeltaTimeName)} is null");
-                Debug.Assert(!string.IsNullOrEmpty(data.RotationRadiusName), $"{nameof(RotationRadiusName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.StopDistanceName), $"{nameof(StopDistanceName)} is null");
-                Debug.Assert(!string.IsNullOrEmpty(data.TorusRadiusName), $"{nameof(TorusRadiusName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.TorusMaxRadiusName), $"{nameof(TorusMaxRadiusName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.TorusMinRadiusName), $"{nameof(TorusMinRadiusName)} is null");
             }
 
             [SerializeField, Tooltip("シェーダー")]
@@ -153,7 +163,7 @@ namespace Master.Modules
             [SerializeField, Tooltip("色バッファ名")]
             private string _colorBufferName;
 
-            [Header("フェーズ")]
+            [Header("グロバール")]
             [SerializeField, Tooltip("パーティクル数パラメータ名")]
             private string _particleCountName;
             [SerializeField, Tooltip("速度パラメータ名")]
@@ -164,16 +174,16 @@ namespace Master.Modules
             private string _timeName;
             [SerializeField, Tooltip("デルタタイム名")]
             private string _deltaTimeName;
-            [Space]
-            [SerializeField, Tooltip("回転半径")]
-            private string _rotationRadiusName;
+
+            [Header("フェーズ2")]
+            [SerializeField, Tooltip("円環最大半径パラメータ名")]
+            private string _torusMaxRadiusName;
+            [SerializeField, Tooltip("円環最小半径パラメータ名")]
+            private string _torusMinRadiusName;
+
+            [Header("フェーズファイナル")]
             [SerializeField, Tooltip("停止距離パラメータ名")]
             private string _stopDistanceName;
-            [Space]
-            [SerializeField, Tooltip("円環の半径パラメータ名")]
-            private string _torusRadiusName;
-
-
         }
     }
 }
