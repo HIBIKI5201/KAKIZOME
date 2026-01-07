@@ -56,8 +56,8 @@ namespace Master.Runner
         {
             _entityManager.UpdateSystems();
 
-            GlobalState globalState = _entityManager.GetGlobalState();
-            ReadOnlySpan<int> phaseCounts = globalState.PhaseCountArray.AsReadOnlySpan();
+            Span<int> phaseCounts = stackalloc int[_computeShaderTransfer.KernelLength];
+            _entityManager.GetPhaseCount(phaseCounts);
             _computeShaderTransfer.Dispatch(Time.deltaTime, Time.time,
                 _gpuBufferContainer.PhaseIndicesBuffers, phaseCounts,
                 _particleCount);
