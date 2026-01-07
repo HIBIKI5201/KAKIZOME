@@ -1,8 +1,6 @@
 using Master.Configs;
 using System;
 using Unity.Entities;
-using Unity.VisualScripting;
-using UnityEngine.LightTransport;
 
 namespace Master.Entities
 {

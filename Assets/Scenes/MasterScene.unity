@@ -553,7 +553,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Master.Runner
   _centerPosition: {x: 0, y: 7.5, z: 0}
   _defaultParticleCount: 300000
-  _particleSpeed: 10
+  _particleSpeed: 20
   _particleStopDistance: 0.5
   _initialRadius: 3
   _phase1Configs:
