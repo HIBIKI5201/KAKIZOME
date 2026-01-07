@@ -2,7 +2,6 @@ using Master.Modules;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using UnityEditor.Search;
 
 namespace Master.Entities
 {
@@ -80,4 +79,4 @@ namespace Master.Entities
             PhaseOutput[particle.Index] = particle.Phase;
         }
     }
-} 
+}
