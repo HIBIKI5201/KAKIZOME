@@ -416,7 +416,7 @@ MonoBehaviour:
   priority: 0
   blendDistance: 0
   weight: 1
-  sharedProfile: {fileID: 11400000, guid: 10fc4df2da32a41aaa32d77bc913491c, type: 2}
+  sharedProfile: {fileID: 11400000, guid: eb47922cb847b514d8c179b047cf4782, type: 2}
 --- !u!4 &832575519
 Transform:
   m_ObjectHideFlags: 0
@@ -551,17 +551,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43fcb98161c29214a80bb2dadae998cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Master.Runner
-  _centerPosition: {x: 0, y: 7.5, z: 0}
-  _defaultParticleCount: 300000
-  _particleSpeed: 20
-  _particleStopDistance: 0.5
-  _initialRadius: 3
-  _phase1Configs:
-    _duration: 1
-    _durationRange: {x: -1, y: 1}
-    _rotationRadius: 15
-  _phase2Configs:
-    _duration: 8
+  _defaultParticleCount:
+    _editorCount: 300000
+    _buildCount: 1000000
+  _phaseConfigRepository:
+    _globalConfigs:
+      _particleSpeed: 500
+      _centerPosition: {x: 0, y: 7.5, z: 0}
+    _phase0Configs:
+      _initialRadius: 3
+    _phase1Configs:
+      _duration: 2
+      _durationRange: {x: -1, y: 1}
+    _phase2Configs:
+      _durationToPhase3: 10
+      _durationToPhaseFinal: 15
+      _torusSpeed: 120
+      _torusRadius: {x: 12, y: 22}
+    _phase3Configs:
+      _orbitalSphereCount: 8
+      _orbitalSphereRadius: 3
+      _orbitalCenterOffset: {x: 0, y: 3, z: 0}
+      _orbitalSpeed: 1.5
+      _orbitalRadius: {x: 20, y: 28}
+    _phaseFinalConfigs:
+      _stopDistance: 0.5
   _vfxParameterNames:
     _positionBuffer: PositionBuffer
     _particleCount: ParticleCount
@@ -588,11 +602,19 @@ MonoBehaviour:
     _phaseBufferName: PhaseBuffer
     _colorBufferName: ColorBuffer
     _particleCountName: ParticleCount
+    _speedName: Speed
     _centerPositionName: CenterPosition
-    _rotationRadiusName: Radius
     _timeName: Time
     _deltaTimeName: DeltaTime
-    _speedName: Speed
+    _torusMaxRadiusName: TorusMinRadius
+    _torusMinRadiusName: TorusMaxRadius
+    _torusSpeedName: TorusSpeed
+    _orbitalSphereCountName: OrbitalSphereCount
+    _orbitalSphereRadiusName: OrbitalSphereRadius
+    _orbitalCenterOffsetName: OrbitalCenterOffset
+    _orbitalSpeedName: OrbitalSpeed
+    _orbitalMaxRadiusName: OrbitalMaxRadius
+    _orbitalMinRadiusName: OrbitalMinRadius
     _stopDistanceName: StopDistance
   _wordDataArray:
   - _mesh: {fileID: 3675354141150844444, guid: 86f282a9cd6f5474c8c509006c16352f, type: 3}
