@@ -2,6 +2,7 @@ using Master.Modules;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using UnityEditor.Search;
 
 namespace Master.Entities
 {
@@ -16,6 +17,7 @@ namespace Master.Entities
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<GlobalState>();
+            _phaseCountQuery = state.GetEntityQuery(ComponentType.ReadWrite<PhaseCountEntity>());
         }
 
         public void OnUpdate(ref SystemState state)
@@ -37,6 +39,11 @@ namespace Master.Entities
             IGraphicBufferContainer container = GPUBufferContainerLocator.Get();
             var phaseIndices = new NativeArray<uint>(particleCount, Allocator.Temp);
 
+            var entity = _phaseCountQuery.GetSingletonEntity();
+            DynamicBuffer<PhaseCountEntity> buffer =
+                state.EntityManager.GetBuffer<PhaseCountEntity>(entity);
+            NativeArray<PhaseCountEntity> phaseCountArray = buffer.AsNativeArray();
+
             for (int i = 0; i < globalState.KernelValue; i++)
             {
                 int count = 0;
@@ -51,14 +58,15 @@ namespace Master.Entities
                 }
 
                 container.PhaseIndicesBuffers[i].SetData(phaseIndices, 0, 0, count);
-                globalState.PhaseCountArray[i] = count;
+                phaseCountArray[i] = new(count);
             }
-
 
             // メモリの解放。
             phaseIndices.Dispose();
             phaseArray.Dispose();
         }
+
+        private EntityQuery _phaseCountQuery;
     }
 
     [BurstCompile]
@@ -72,4 +80,4 @@ namespace Master.Entities
             PhaseOutput[particle.Index] = particle.Phase;
         }
     }
-}
+} 
