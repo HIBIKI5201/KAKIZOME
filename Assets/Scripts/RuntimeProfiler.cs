@@ -1,12 +1,7 @@
-// write by gpt.
-
 using UnityEngine;
 using System.Text;
 using UnityEngine.InputSystem;
 using Master.Configs;
-
-
-
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -14,7 +9,16 @@ using UnityEditor;
 
 public class RuntimeProfiler : MonoBehaviour, IParticleCountContainer
 {
-    public int ParticleCount => _particleCount;
+    public int GetParticleCount(int defaultCount)
+    {
+        if (0 < _particleCount)
+        {
+            return _particleCount;
+        }
+
+        _value = _particleCount.ToString();
+        return defaultCount;
+    }
 
     private int _particleCount = -1;
     private bool _isActive;
@@ -38,14 +42,14 @@ public class RuntimeProfiler : MonoBehaviour, IParticleCountContainer
         }
     }
 
-    void Update()
+    private void Update()
     {
         if (Keyboard.current.tabKey.wasPressedThisFrame)
         {
             _isActive = !_isActive;
         }
 
-            _deltaTime += (Time.unscaledDeltaTime - _deltaTime) * 0.1f;
+        _deltaTime += (Time.unscaledDeltaTime - _deltaTime) * 0.1f;
     }
 
     private void OnDestroy()
