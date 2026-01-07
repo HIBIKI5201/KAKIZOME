@@ -7,12 +7,15 @@ namespace Master.Configs
     public struct PhaseConfigRepository
     {
         public GlobalConfigs GlobalConfigs => _globalConfigs;
+        public Phase0Configs Phase0Configs => _phase0Configs;
         public Phase1Configs Phase1Configs => _phase1Configs;
         public Phase2Configs Phase2Configs => _phase2Configs;
         public PhaseFinalConfigs PhaseFinalConfigs => _phaseFinalConfigs;
 
         [SerializeField]
         private GlobalConfigs _globalConfigs;
+        [SerializeField]
+        private Phase0Configs _phase0Configs;
         [SerializeField]
         private Phase1Configs _phase1Configs;
         [SerializeField]
