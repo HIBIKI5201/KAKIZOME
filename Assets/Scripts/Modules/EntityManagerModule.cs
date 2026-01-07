@@ -2,6 +2,7 @@ using Master.Configs;
 using System;
 using Unity.Entities;
 using Unity.VisualScripting;
+using UnityEngine.LightTransport;
 
 namespace Master.Entities
 {
@@ -48,6 +49,10 @@ namespace Master.Entities
 
             if (_group.Enabled)
             {
+                foreach (var system in _group.ManagedSystems)
+                {
+                    _world.DestroySystemManaged(system);
+                }
                 _world.DestroySystemManaged(_group);
             }
         }
