@@ -29,6 +29,7 @@ uint Phase2Count;
 float TorusSpeed;
 float TorusMinRadius;
 float TorusMaxRadius;
+float TorusYSpring;
 
 // フェーズ3情報
 RWStructuredBuffer<uint> Phase3Indices;
@@ -109,7 +110,6 @@ void Phase2(uint id : SV_DispatchThreadID)
 
     // パラメータ。
     float RadiusForce = 6;
-    float YSpring = 10;
 
     // パーティクル固有値。
     float seed = Hash01(i);
@@ -140,7 +140,7 @@ void Phase2(uint id : SV_DispatchThreadID)
 
     // Y軸のバネ挙動の加速度。
     float yErr = CenterPosition.y - pos.y;
-    acc.y += yErr * YSpring;
+    acc.y += yErr * TorusYSpring;
     
     ApplyAccelerationAndSave(i, pos, vel, acc);
 }

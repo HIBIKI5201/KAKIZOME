@@ -62,6 +62,7 @@ namespace Master.Modules
             shader.SetFloat(_data.TorusMaxRadiusName, phaseConfig.Phase2Configs.TorusMaxRadius);
             shader.SetFloat(_data.TorusMinRadiusName, phaseConfig.Phase2Configs.TorusMinRadius);
             shader.SetFloat(_data.TorusSpeedName, phaseConfig.Phase2Configs.TorusSpeed);
+            shader.SetFloat(_data.TorusYSpringName, phaseConfig.Phase2Configs.TorusYSpring);
 
             // フェーズ3。
             shader.SetFloat(_data.OrbitalSphereCountName, phaseConfig.Phase3Configs.OrbitalSphereCount);
@@ -135,6 +136,7 @@ namespace Master.Modules
             public string TorusMaxRadiusName => _torusMaxRadiusName;
             public string TorusMinRadiusName => _torusMinRadiusName;
             public string TorusSpeedName => _torusSpeedName;
+            public string TorusYSpringName => _torusYSpringName;
             public string OrbitalSphereCountName => _orbitalSphereCountName;
             public string OrbitalSphereRadiusName => _orbitalSphereRadiusName;
             public string OrbitalCenterOffsetName => _orbitalCenterOffsetName;
@@ -161,6 +163,7 @@ namespace Master.Modules
                 Debug.Assert(!string.IsNullOrEmpty(data.TorusMaxRadiusName), $"{nameof(TorusMaxRadiusName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.TorusMinRadiusName), $"{nameof(TorusMinRadiusName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.TorusSpeedName), $"{nameof(TorusSpeedName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.TorusYSpringName), $"{nameof(TorusYSpringName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.OrbitalSphereCountName), $"{nameof(OrbitalSphereCountName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.OrbitalSphereRadiusName), $"{nameof(OrbitalSphereRadiusName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.OrbitalCenterOffsetName), $"{nameof(OrbitalCenterOffsetName)} is null");
@@ -210,6 +213,8 @@ namespace Master.Modules
             private string _torusMinRadiusName;
             [SerializeField, Tooltip("円環の回転速度パラメータ名")]
             private string _torusSpeedName;
+            [SerializeField ,Tooltip("円環のYバネ力パラメータ名")]
+            private string _torusYSpringName;
 
             [Header("フェーズ3")]
             [SerializeField, Tooltip("衛星球の数パラメータ名")]

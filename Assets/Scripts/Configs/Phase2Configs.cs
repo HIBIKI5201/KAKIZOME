@@ -12,6 +12,7 @@ namespace Master.Configs
         public float TorusSpeed => _torusSpeed;
         public float TorusMaxRadius => _torusRadius.y;
         public float TorusMinRadius => _torusRadius.x;
+        public float TorusYSpring => _torusYSpring;
 
         public static void OnDrawGizmos(Phase2Configs configs, Vector3 center)
         {
@@ -45,5 +46,7 @@ namespace Master.Configs
         private float _torusSpeed;
         [SerializeField, Tooltip("円環の半径"), MinMaxRangeSlider(0, 30)]
         private Vector2 _torusRadius;
+        [SerializeField, Tooltip("円環のYバネ力")]
+        private float _torusYSpring;
     }
 }
