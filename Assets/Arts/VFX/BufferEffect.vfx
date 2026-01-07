@@ -1715,7 +1715,7 @@ MonoBehaviour:
   useEmissiveChannelScale: 0
   useColorAbsorption: 1
   doubleSided: 0
-  receiveShadows: 1
+  receiveShadows: 0
   MeshCount: 1
   lod: 0
 --- !u!114 &8926484042661615062
