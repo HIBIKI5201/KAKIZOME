@@ -8,7 +8,8 @@ namespace Master.Configs
     public struct Phase1Configs
     {
         public float Duration => _duration;
-        public Vector2 DurationRange => _durationRange;
+        public float DurationRangeMax => _durationRange.y;
+        public float DurationRangeMin => _durationRange.x;
 
         [SerializeField, Tooltip("フェーズ１の長さ")]
         private float _duration;
