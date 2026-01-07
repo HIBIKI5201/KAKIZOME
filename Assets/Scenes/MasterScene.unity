@@ -552,8 +552,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Master.Runner
   _defaultParticleCount:
-    _editorCount: 300000
-    _buildCount: 1000000
+    _editorCount: 100000
+    _buildCount: 100000
   _phaseConfigRepository:
     _globalConfigs:
       _particleSpeed: 500
@@ -568,10 +568,11 @@ MonoBehaviour:
       _durationToPhaseFinal: 15
       _torusSpeed: 120
       _torusRadius: {x: 12, y: 22}
+      _torusYSpring: 0
     _phase3Configs:
       _orbitalSphereCount: 8
       _orbitalSphereRadius: 3
-      _orbitalCenterOffset: {x: 0, y: 3, z: 0}
+      _orbitalCenterOffset: {x: 0, y: 5, z: 0}
       _orbitalSpeed: 1.5
       _orbitalRadius: {x: 20, y: 28}
     _phaseFinalConfigs:
@@ -609,6 +610,7 @@ MonoBehaviour:
     _torusMaxRadiusName: TorusMinRadius
     _torusMinRadiusName: TorusMaxRadius
     _torusSpeedName: TorusSpeed
+    _torusYSpringName: TorusYSpring
     _orbitalSphereCountName: OrbitalSphereCount
     _orbitalSphereRadiusName: OrbitalSphereRadius
     _orbitalCenterOffsetName: OrbitalCenterOffset
