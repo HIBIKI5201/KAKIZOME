@@ -26,12 +26,19 @@ uint Phase1Count;
 // フェーズ2情報
 RWStructuredBuffer<uint> Phase2Indices;
 uint Phase2Count;
+float TorusSpeed;
 float TorusMinRadius;
 float TorusMaxRadius;
 
 // フェーズ3情報
 RWStructuredBuffer<uint> Phase3Indices;
 uint Phase3Count;
+uint OrbitalSphereCount;
+float OrbitalSphereRadius;
+float3 OrbitalCenterOffset;
+float OrbitalSpeed;
+float OrbitalMaxRadius;
+float OrbitalMinRadius;
 
 // 最終フェーズ情報
 RWStructuredBuffer<uint> PhaseFinalIndices;
@@ -103,7 +110,6 @@ void Phase2(uint id : SV_DispatchThreadID)
     // パラメータ。
     float RadiusForce = 6;
     float YSpring = 10;
-    float TorusSpeed = 6;
 
     // パーティクル固有値。
     float seed = Hash01(i);
@@ -153,16 +159,8 @@ void Phase3(uint id : SV_DispatchThreadID)
     float3 pos = PositionBuffer[i];
     float3 vel = VelocityBuffer[i];
 
-    // パラメータ。
-    uint OrbitalSphereCount = 5;
-    float OrbitalMaxRadius = 15.0;
-    float OrbitalMinRadius = 10.0;
-    float OrbitalSphereRadius = 3.0;
-    float OrbitalSpeed = 1.0;
-    float3 CenterOffset = float3(0, 5, 0);
-
-    float radiusProportion = OrbitalMinRadius / OrbitalMaxRadius;
-    float orbitalRadius = ((cos(Time) + 1) / 2 * radiusProportion + (1 - radiusProportion)) * OrbitalMaxRadius;
+    float t = (cos(Time) + 1) / 2.0;
+    float orbitalRadius = lerp(OrbitalMinRadius, OrbitalMaxRadius, t);
     
     // 所属する球のインデックス。
     uint sphereIndex = HashUint(i) % OrbitalSphereCount;
@@ -173,7 +171,7 @@ void Phase3(uint id : SV_DispatchThreadID)
     // 時間による公転。
     float angle = Time * OrbitalSpeed + spherePhase;
 
-    float3 offsetedCenter = CenterPosition + CenterOffset;
+    float3 offsetedCenter = CenterPosition + OrbitalCenterOffset;
     
     float3 orbitCenter;
     orbitCenter.x = offsetedCenter.x + cos(angle) * orbitalRadius;
