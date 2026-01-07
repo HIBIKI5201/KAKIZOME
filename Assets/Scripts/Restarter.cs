@@ -14,7 +14,7 @@ public class Restarter : MonoBehaviour
 
     private void Update()
     {
-        if (Keyboard.current.anyKey.isPressed)
+        if (Keyboard.current.spaceKey.wasPressedThisFrame)
         {
             SceneManager.LoadScene(_index);
         }
