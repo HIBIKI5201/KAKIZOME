@@ -13,25 +13,11 @@ namespace Master.Runner
     {
         [Header("基本設定")]
         [SerializeField]
-        private Vector3 _centerPosition = Vector3.zero;
-        [SerializeField]
         private int _defaultParticleCount = 10000;
 
-        [Header("パーティクル設定")]
-        [SerializeField, Tooltip("パーティクルの速度")]
-        private float _particleSpeed = 5f;
-        [SerializeField, Tooltip("パーティクルが停止する目標地点までの距離")]
-        private float _particleStopDistance = 0.1f;
-
-        [Header("フェーズ設定")]
         [Space]
         [SerializeField]
-        private float _initialRadius = 20f;
-        [Space]
-        [SerializeField]
-        private Phase1Configs _phase1Configs;
-        [SerializeField]
-        private Phase2Configs _phase2Configs;
+        private PhaseConfigRepository _phaseConfigRepository;
 
         [Header("モジュールパラメータ設定")]
         [SerializeField, Tooltip("VFXのパラメータ名")]
@@ -85,7 +71,9 @@ namespace Master.Runner
 
         private void OnDrawGizmos()
         {
-            InitialSphereModule.OnDrawGizmos(_initialRadius, _centerPosition);
+            InitialSphereModule.OnDrawGizmos(
+                _phaseConfigRepository.Phase0Configs.InitialRadius,
+                _phaseConfigRepository.GlobalConfigs.CenterPosition);
             WordManagerModule.OnDrawGizmos(_wordDataArray);
         }
 
@@ -96,7 +84,9 @@ namespace Master.Runner
         private void ConstructModule(VisualEffect vfx, World world)
         {
             _wordManagerModule = new(_wordDataArray);
-            _initialSphereModule = new(_initialRadius, _centerPosition);
+            _initialSphereModule = new(
+                _phaseConfigRepository.Phase0Configs.InitialRadius,
+                _phaseConfigRepository.GlobalConfigs.CenterPosition);
             _gpuBufferContainer = new(_defaultParticleCount, _computeShaderData.PhaseKernelDastas.Length);
             _entityManager = new(world);
             _visualEffectTransfer = new(vfx, _vfxParameterNames);
@@ -110,12 +100,12 @@ namespace Master.Runner
         {
             _visualEffectTransfer.BindParameter(_gpuBufferContainer, _defaultParticleCount);
             _computeShaderTransfer.BindParameter(_gpuBufferContainer, _defaultParticleCount,
-                _centerPosition, _phase1Configs.RotationRadius,
-                _particleSpeed, _particleStopDistance);
+                _phaseConfigRepository);
 
             GPUBufferContainerLocator.Register(_gpuBufferContainer);
-            _entityManager.CreateSystems(_defaultParticleCount, _computeShaderData.PhaseKernelDastas.Length, 
-                _phase1Configs, _phase2Configs);
+            _entityManager.CreateSystems(_defaultParticleCount,
+                _computeShaderData.PhaseKernelDastas.Length, 
+                _phaseConfigRepository);
         }
     }
 }
