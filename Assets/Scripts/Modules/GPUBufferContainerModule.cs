@@ -39,21 +39,34 @@ namespace Master.Modules
             targetPos.Dispose();
 
             // 初期位置を球面上にランダム配置。
-            NativeArray<float3> initialPos = new NativeArray<float3>(_count, Allocator.Temp);
+            NativeArray<float3> initialPos = new(_count, Allocator.Temp);
             sphere.RandomArray(ref initialPos);
             _positionBuffer.SetData(initialPos);
             initialPos.Dispose();
+
+            // 速度を初期化。
+            NativeArray<float3> velocity = new(_count, Allocator.Temp);
+            _velocityBuffer.SetData(velocity);
+            _velocityBuffer.Dispose();
         }
 
         public void Dispose()
         {
+            _positionBuffer.Release();
             _positionBuffer.Dispose();
+
+            _velocityBuffer.Release();
             _velocityBuffer.Dispose();
+
+            _targetBuffer.Release();
             _targetBuffer.Dispose();
-            foreach (var item in _phaseIndicesBuffers)
+            foreach (var buffer in _phaseIndicesBuffers)
             {
-                item.Dispose();
+                buffer.Release();
+                buffer.Dispose();
             }
+
+            _colorBuffer.Release();
             _colorBuffer.Dispose();
         }
 
