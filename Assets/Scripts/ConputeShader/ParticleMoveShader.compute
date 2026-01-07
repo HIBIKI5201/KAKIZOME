@@ -54,6 +54,16 @@ uint HashUint(uint x)
     return x;
 }
 
+void Move(uint i, float3 vel, float3 pos)
+{
+    vel *= AIR_RESISTANCE;
+
+    pos += vel * DeltaTime;
+    
+    PositionBuffer[i] = pos;
+    VelocityBuffer[i] = vel;
+}
+
 [numthreads(64, 1, 1)]
 void Phase1(uint id : SV_DispatchThreadID)
 {
@@ -66,12 +76,14 @@ void Phase1(uint id : SV_DispatchThreadID)
     uint i = Phase1Indices[id];
     
     float3 pos = PositionBuffer[i];
+    float3 vel = VelocityBuffer[i];
     
     float3 dir = normalize(CenterPosition - pos);
          
     // 中心から遠ざかる。
-    pos -= dir * Speed * DeltaTime;
-    PositionBuffer[i] = pos;
+    vel -= dir * Speed * DeltaTime;
+    
+    Move(i, vel, pos);
 }
 
 [numthreads(64, 1, 1)]
@@ -125,12 +137,7 @@ void Phase2(uint id : SV_DispatchThreadID)
     float yErr = CenterPosition.y - pos.y;
     vel.y += yErr * YSpring * DeltaTime;
 
-    vel *= AIR_RESISTANCE; // 空気抵抗。
-
-    pos += vel * DeltaTime;
-
-    PositionBuffer[i] = pos;
-    VelocityBuffer[i] = vel;
+    Move(i, vel, pos);
 }
 
 [numthreads(64, 1, 1)]
@@ -188,12 +195,7 @@ void Phase3(uint id : SV_DispatchThreadID)
     float3 diff = targetPos - pos;
 
     vel += diff * Speed * DeltaTime;
-    vel *= AIR_RESISTANCE;
-
-    pos += vel * DeltaTime;
-
-    PositionBuffer[i] = pos;
-    VelocityBuffer[i] = vel;
+    Move(i, vel, pos);
 }
 
 
@@ -210,21 +212,23 @@ void PhaseFinal(uint id : SV_DispatchThreadID)
     
     float3 target = TargetBuffer[i];
     float3 pos = PositionBuffer[i];
+    float3 vel = VelocityBuffer[i];
     
     float3 diff = target - pos;
     float dist = length(diff);
-    float3 dir = diff / dist;
     
     if (dist <= StopDistance)
     {
         // ストップしたらターゲット位置にスナップ。
         PositionBuffer[i] = target;
+        VelocityBuffer[i] = float3(0, 0, 0);
         return;
     }
     
     // ターゲットに向かって移動。
-    pos += dir * Speed * DeltaTime;
-    PositionBuffer[i] = pos;
+    vel += normalize(diff) * Speed * DeltaTime;
+
+    Move(i, vel, pos);
 }
 
 // HSVをRGBに変換する。
