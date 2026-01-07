@@ -1,5 +1,6 @@
 using Master.Configs;
 using System;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Master.Modules
@@ -54,9 +55,20 @@ namespace Master.Modules
             shader.SetInt(_data.ParticleCountName, count);
             shader.SetVector(_data.CenterPositionName, phaseConfig.GlobalConfigs.CenterPosition);
             shader.SetFloat(_data.SpeedName, phaseConfig.GlobalConfigs.ParticleSpeed);
+            
             // フェーズ2。
             shader.SetFloat(_data.TorusMaxRadiusName, phaseConfig.Phase2Configs.TorusMaxRadius);
             shader.SetFloat(_data.TorusMinRadiusName, phaseConfig.Phase2Configs.TorusMinRadius);
+            shader.SetFloat(_data.TorusSpeedName, phaseConfig.Phase2Configs.TorusSpeed);
+
+            // フェーズ3。
+            shader.SetFloat(_data.OrbitalSphereCountName, phaseConfig.Phase3Configs.OrbitalSphereCount);
+            shader.SetFloat(_data.OrbitalSphereRadiusName, phaseConfig.Phase3Configs.OrbitalSphereRadius);
+            shader.SetVector(_data.OrbitalCenterOffsetName, phaseConfig.Phase3Configs.OrbitalCenterOffset);
+            shader.SetFloat(_data.OrbitalSpeedName, phaseConfig.Phase3Configs.OrbitalSpeed);
+            shader.SetFloat(_data.OrbitalMaxRadiusName, phaseConfig.Phase3Configs.OrbitalMaxRadius);
+            shader.SetFloat(_data.OrbitalMinRadiusName, phaseConfig.Phase3Configs.OrbitalMinRadius);
+
             // フェーズファイナル。
             shader.SetFloat(_data.StopDistanceName, phaseConfig.PhaseFinalConfigs.StopDistance);
             #endregion
@@ -118,9 +130,16 @@ namespace Master.Modules
             public string CenterPositionName => _centerPositionName;
             public string TimeName => _timeName;
             public string DeltaTimeName => _deltaTimeName;
-            public string StopDistanceName => _stopDistanceName;
             public string TorusMaxRadiusName => _torusMaxRadiusName;
             public string TorusMinRadiusName => _torusMinRadiusName;
+            public string TorusSpeedName => _torusSpeedName;
+            public string OrbitalSphereCountName => _orbitalSphereCountName;
+            public string OrbitalSphereRadiusName => _orbitalSphereRadiusName;
+            public string OrbitalCenterOffsetName => _orbitalCenterOffsetName;
+            public string OrbitalSpeedName => _orbitalSpeedName;
+            public string OrbitalMaxRadiusName => _orbitalMaxRadiusName;
+            public string OrbitalMinRadiusName => _orbitalMinRadiusName;
+            public string StopDistanceName => _stopDistanceName;
 
             public static void Assert(ComputeShaderData data)
             {
@@ -137,9 +156,16 @@ namespace Master.Modules
                 Debug.Assert(!string.IsNullOrEmpty(data.CenterPositionName), $"{nameof(CenterPositionName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.TimeName), $"{nameof(TimeName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.DeltaTimeName), $"{nameof(DeltaTimeName)} is null");
-                Debug.Assert(!string.IsNullOrEmpty(data.StopDistanceName), $"{nameof(StopDistanceName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.TorusMaxRadiusName), $"{nameof(TorusMaxRadiusName)} is null");
                 Debug.Assert(!string.IsNullOrEmpty(data.TorusMinRadiusName), $"{nameof(TorusMinRadiusName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.TorusSpeedName), $"{nameof(TorusSpeedName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.OrbitalSphereCountName), $"{nameof(OrbitalSphereCountName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.OrbitalSphereRadiusName), $"{nameof(OrbitalSphereRadiusName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.OrbitalCenterOffsetName), $"{nameof(OrbitalCenterOffsetName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.OrbitalSpeedName), $"{nameof(OrbitalSpeedName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.OrbitalMaxRadiusName), $"{nameof(OrbitalMaxRadiusName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.OrbitalMinRadiusName), $"{nameof(OrbitalMinRadiusName)} is null");
+                Debug.Assert(!string.IsNullOrEmpty(data.StopDistanceName), $"{nameof(StopDistanceName)} is null");
             }
 
             [SerializeField, Tooltip("シェーダー")]
@@ -180,6 +206,22 @@ namespace Master.Modules
             private string _torusMaxRadiusName;
             [SerializeField, Tooltip("円環最小半径パラメータ名")]
             private string _torusMinRadiusName;
+            [SerializeField, Tooltip("円環の回転速度パラメータ名")]
+            private string _torusSpeedName;
+
+            [Header("フェーズ3")]
+            [SerializeField, Tooltip("衛星球の数パラメータ名")]
+            private string _orbitalSphereCountName;
+            [SerializeField, Tooltip("衛星球の半径パラメータ名")]
+            private string _orbitalSphereRadiusName;
+            [SerializeField, Tooltip("衛星球の中心軸調整パラメータ名")]
+            private string _orbitalCenterOffsetName;
+            [SerializeField, Tooltip("衛星球の公転速度パラメータ名")]
+            private string _orbitalSpeedName;
+            [SerializeField, Tooltip("衛星球の公転最大半径パラメータ名")]
+            private string _orbitalMaxRadiusName;
+            [SerializeField, Tooltip("衛星球の公転最小半径パラメータ名")]
+            private string _orbitalMinRadiusName;
 
             [Header("フェーズファイナル")]
             [SerializeField, Tooltip("停止距離パラメータ名")]
