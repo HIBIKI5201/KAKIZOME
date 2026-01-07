@@ -28,7 +28,7 @@ namespace Master.Entities
                 ecb.AddComponent(entity, new ParticleEntity(i));
 
                 float r = rnd.NextFloat();
-                float d = configs.Duration + math.lerp(configs.DurationRange.x, configs.DurationRange.y, r);
+                float d = configs.Duration + math.lerp(configs.DurationRangeMin, configs.DurationRangeMax, r);
                 ecb.AddComponent(entity, new Phase1TimerEntity(d));
             }
             ecb.Playback(state.EntityManager);
