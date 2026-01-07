@@ -552,7 +552,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Master.Runner
   _centerPosition: {x: 0, y: 7.5, z: 0}
-  _defaultParticleCount: 1000000
+  _defaultParticleCount: 300000
   _particleSpeed: 10
   _particleStopDistance: 0.5
   _initialRadius: 3
@@ -691,8 +691,11 @@ VisualEffect:
   m_PropertySheet:
     m_Float:
       m_Array:
-      - m_Value: 2
+      - m_Value: 3
         m_Name: Emmision
+        m_Overridden: 1
+      - m_Value: 0.7
+        m_Name: Scale
         m_Overridden: 1
     m_Vector2f:
       m_Array: []
