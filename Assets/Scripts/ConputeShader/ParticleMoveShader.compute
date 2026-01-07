@@ -54,15 +54,17 @@ uint HashUint(uint x)
     return x;
 }
 
-void Move(uint i, float3 vel, float3 pos)
+void ApplyAccelerationAndSave(uint i, inout float3 pos, inout float3 vel, float3 acc)
 {
+    vel += acc * DeltaTime;
+    
     vel *= AIR_RESISTANCE;
-
     pos += vel * DeltaTime;
     
     PositionBuffer[i] = pos;
     VelocityBuffer[i] = vel;
 }
+
 
 [numthreads(64, 1, 1)]
 void Phase1(uint id : SV_DispatchThreadID)
@@ -78,12 +80,10 @@ void Phase1(uint id : SV_DispatchThreadID)
     float3 pos = PositionBuffer[i];
     float3 vel = VelocityBuffer[i];
     
-    float3 dir = normalize(CenterPosition - pos);
-         
     // 中心から遠ざかる。
-    vel -= dir * Speed * DeltaTime;
+    float3 acc = -normalize(CenterPosition - pos) * Speed;
     
-    Move(i, vel, pos);
+    ApplyAccelerationAndSave(i, pos, vel, acc);
 }
 
 [numthreads(64, 1, 1)]
@@ -99,7 +99,7 @@ void Phase2(uint id : SV_DispatchThreadID)
     float3 pos = PositionBuffer[i];
     float3 vel = VelocityBuffer[i];
 
-    // ----- パラメータ -----
+    // パラメータ。
     float MinRadius = 10;
     float MaxRadius = 20;
     float RadiusForce = 6;
@@ -109,13 +109,13 @@ void Phase2(uint id : SV_DispatchThreadID)
     // パーティクル固有値。
     float seed = Hash01(i);
     float baseRadius = lerp(MinRadius, MaxRadius, seed);
-    float initialAngle = seed * TAU; // 0～2πの間。
+    float initialAngle = seed * TAU;
     
     // 厚みノイズ。
     float jitter = (MaxRadius - MinRadius) * 0.05 * (seed - 0.5);
     float targetRadius = baseRadius + jitter;
 
-    // 円環の平面ベクトル
+    // 円環の平面ベクトル。
     float3 toPos = pos - CenterPosition;
     toPos.y = 0.0;
     float r = length(toPos);
@@ -123,21 +123,21 @@ void Phase2(uint id : SV_DispatchThreadID)
     float3 normalized = toPos / r;
     float3 tangent = float3(-normalized.z, 0, normalized.x);
 
-    // 公転運動。
+    // 公転運動の加速度。
     float angularSpeed = OrbitalSpeed / max(targetRadius, MinRadius);
     float3 targetTangentVel = tangent * (angularSpeed * targetRadius);
     float3 currentTangentVel = dot(vel, tangent) * tangent;
-    
-    vel += (targetTangentVel - currentTangentVel) * 4 * DeltaTime;
+    float3 acc = (targetTangentVel - currentTangentVel) * 4;
 
+    // 半径方向の加速度。
     float rError = targetRadius - r;
-    vel += normalized * rError * RadiusForce * DeltaTime;
+    acc += normalized * rError * RadiusForce;
 
-    // Y軸のバネ挙動。
+    // Y軸のバネ挙動の加速度。
     float yErr = CenterPosition.y - pos.y;
-    vel.y += yErr * YSpring * DeltaTime;
-
-    Move(i, vel, pos);
+    acc.y += yErr * YSpring;
+    
+    ApplyAccelerationAndSave(i, pos, vel, acc);
 }
 
 [numthreads(64, 1, 1)]
@@ -193,9 +193,9 @@ void Phase3(uint id : SV_DispatchThreadID)
     float3 targetPos = orbitCenter + sphereDir * SphereRadius;
     
     float3 diff = targetPos - pos;
+    float3 acc = diff * Speed;
 
-    vel += diff * Speed * DeltaTime;
-    Move(i, vel, pos);
+    ApplyAccelerationAndSave(i, pos, vel, acc);
 }
 
 
@@ -226,9 +226,9 @@ void PhaseFinal(uint id : SV_DispatchThreadID)
     }
     
     // ターゲットに向かって移動。
-    vel += normalize(diff) * Speed * DeltaTime;
+    float3 acc = normalize(diff) * Speed;
 
-    Move(i, vel, pos);
+    ApplyAccelerationAndSave(i, pos, vel, acc);
 }
 
 // HSVをRGBに変換する。
