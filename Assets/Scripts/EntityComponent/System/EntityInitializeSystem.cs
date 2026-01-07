@@ -1,5 +1,4 @@
 using Master.Configs;
-using System;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -27,7 +26,7 @@ namespace Master.Entities
             {
                 Entity entity = ecb.CreateEntity();
                 ecb.AddComponent(entity, new ParticleEntity(i));
-                
+
                 float r = rnd.NextFloat();
                 float d = configs.Duration + math.lerp(configs.DurationRange.x, configs.DurationRange.y, r);
                 ecb.AddComponent(entity, new Phase1TimerEntity(d));
@@ -37,6 +36,21 @@ namespace Master.Entities
 
             // 初期化が完了したら、このシステムを無効化。
             state.Enabled = false;
+        }
+
+        public void OnDestroy(ref SystemState state)
+        {
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+
+            foreach (var (particle, entity) in
+                     SystemAPI.Query<RefRO<ParticleEntity>>()
+                              .WithEntityAccess())
+            {
+                ecb.DestroyEntity(entity);
+            }
+
+            ecb.Playback(state.EntityManager);
+            ecb.Dispose();
         }
     }
 }
