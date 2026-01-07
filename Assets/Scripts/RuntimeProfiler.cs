@@ -16,7 +16,7 @@ public class RuntimeProfiler : MonoBehaviour, IParticleCountContainer
             return _particleCount;
         }
 
-        _value = _particleCount.ToString();
+        _value = defaultCount.ToString();
         return defaultCount;
     }
 
