@@ -14,7 +14,10 @@ RWStructuredBuffer<float3> ColorBuffer;
 
 float Time;
 float DeltaTime;
+
 uint ParticleCount;
+float3 CenterPosition;
+float Speed;
 
 // フェーズ0情報
 float Radius;
@@ -22,11 +25,12 @@ float Radius;
 // フェーズ1情報
 RWStructuredBuffer<uint> Phase1Indices;
 uint Phase1Count;
-float3 CenterPosition;
 
 // フェーズ2情報
 RWStructuredBuffer<uint> Phase2Indices;
 uint Phase2Count;
+float TorusMinRadius;
+float TorusMaxRadius;
 
 // フェーズ3情報
 RWStructuredBuffer<uint> Phase3Indices;
@@ -35,9 +39,7 @@ uint Phase3Count;
 // 最終フェーズ情報
 RWStructuredBuffer<uint> PhaseFinalIndices;
 uint PhaseFinalCount;
-
 float StopDistance;
-float Speed;
 
 float Hash01(uint n)
 {
@@ -66,6 +68,7 @@ void ApplyAccelerationAndSave(uint i, inout float3 pos, inout float3 vel, float3
 }
 
 
+// 中心から離れるように加速するフェーズ。
 [numthreads(64, 1, 1)]
 void Phase1(uint id : SV_DispatchThreadID)
 {
@@ -86,6 +89,7 @@ void Phase1(uint id : SV_DispatchThreadID)
     ApplyAccelerationAndSave(i, pos, vel, acc);
 }
 
+// 円環を回るフェーズ。
 [numthreads(64, 1, 1)]
 void Phase2(uint id : SV_DispatchThreadID)
 {
@@ -100,19 +104,17 @@ void Phase2(uint id : SV_DispatchThreadID)
     float3 vel = VelocityBuffer[i];
 
     // パラメータ。
-    float MinRadius = 10;
-    float MaxRadius = 20;
     float RadiusForce = 6;
     float YSpring = 10;
-    float OrbitalSpeed = 6;
+    float TorusSpeed = 6;
 
     // パーティクル固有値。
     float seed = Hash01(i);
-    float baseRadius = lerp(MinRadius, MaxRadius, seed);
+    float baseRadius = lerp(TorusMinRadius, TorusMaxRadius, seed);
     float initialAngle = seed * TAU;
     
     // 厚みノイズ。
-    float jitter = (MaxRadius - MinRadius) * 0.05 * (seed - 0.5);
+    float jitter = (TorusMaxRadius - TorusMinRadius) * 0.05 * (seed - 0.5);
     float targetRadius = baseRadius + jitter;
 
     // 円環の平面ベクトル。
@@ -124,7 +126,7 @@ void Phase2(uint id : SV_DispatchThreadID)
     float3 tangent = float3(-normalized.z, 0, normalized.x);
 
     // 公転運動の加速度。
-    float angularSpeed = OrbitalSpeed / max(targetRadius, MinRadius);
+    float angularSpeed = TorusSpeed / max(targetRadius, TorusMinRadius);
     float3 targetTangentVel = tangent * (angularSpeed * targetRadius);
     float3 currentTangentVel = dot(vel, tangent) * tangent;
     float3 acc = (targetTangentVel - currentTangentVel) * 4;
@@ -140,6 +142,7 @@ void Phase2(uint id : SV_DispatchThreadID)
     ApplyAccelerationAndSave(i, pos, vel, acc);
 }
 
+// 公転する衛星のフェーズ。
 [numthreads(64, 1, 1)]
 void Phase3(uint id : SV_DispatchThreadID)
 {
@@ -154,17 +157,21 @@ void Phase3(uint id : SV_DispatchThreadID)
     float3 vel = VelocityBuffer[i];
 
     // パラメータ。
-    uint SphereCount = 5;
-    float OrbitalRadius = 15.0;
-    float SphereRadius = 3.0;
+    uint OrbitalSphereCount = 5;
+    float OrbitalMaxRadius = 15.0;
+    float OrbitalMinRadius = 10.0;
+    float OrbitalSphereRadius = 3.0;
     float OrbitalSpeed = 1.0;
     float3 CenterOffset = float3(0, 5, 0);
 
+    float radiusProportion = OrbitalMinRadius / OrbitalMaxRadius;
+    float orbitalRadius = ((cos(Time) + 1) / 2 * radiusProportion + (1 - radiusProportion)) * OrbitalMaxRadius;
+    
     // 所属する球のインデックス。
-    uint sphereIndex = HashUint(i) % SphereCount;
+    uint sphereIndex = HashUint(i) % OrbitalSphereCount;
 
     // 各球の位相（均等配置）
-    float spherePhase = (sphereIndex / (float) SphereCount) * TAU;
+    float spherePhase = (sphereIndex / (float) OrbitalSphereCount) * TAU;
 
     // 時間による公転。
     float angle = Time * OrbitalSpeed + spherePhase;
@@ -172,12 +179,12 @@ void Phase3(uint id : SV_DispatchThreadID)
     float3 offsetedCenter = CenterPosition + CenterOffset;
     
     float3 orbitCenter;
-    orbitCenter.x = offsetedCenter.x + cos(angle) * OrbitalRadius;
-    orbitCenter.z = offsetedCenter.z + sin(angle) * OrbitalRadius;
+    orbitCenter.x = offsetedCenter.x + cos(angle) * orbitalRadius;
+    orbitCenter.z = offsetedCenter.z + sin(angle) * orbitalRadius;
     orbitCenter.y = offsetedCenter.y;
     
     // 球表面上の分布（球ごとに安定）
-    uint localSeed = i / SphereCount;
+    uint localSeed = i / OrbitalSphereCount;
 
     float seed1 = Hash01(localSeed * 17 + sphereIndex * 131);
     float seed2 = Hash01(localSeed * 59 + sphereIndex * 241);
@@ -190,7 +197,7 @@ void Phase3(uint id : SV_DispatchThreadID)
     sphereDir.y = cos(phi);
     sphereDir.z = sin(phi) * sin(theta);
     
-    float3 targetPos = orbitCenter + sphereDir * SphereRadius;
+    float3 targetPos = orbitCenter + sphereDir * OrbitalSphereRadius;
     
     float3 diff = targetPos - pos;
     float3 acc = diff * Speed;
@@ -199,6 +206,7 @@ void Phase3(uint id : SV_DispatchThreadID)
 }
 
 
+// あけおめ文字フェーズ。
 [numthreads(64, 1, 1)]
 void PhaseFinal(uint id : SV_DispatchThreadID)
 {
@@ -240,17 +248,29 @@ float3 HSVtoRGB(float h, float s, float v)
     float3 rgb = float3(0, 0, 0);
     
     if (0 <= h_prime && h_prime < 1)
+    {
         rgb = float3(c, x, 0);
+    }
     else if (1 <= h_prime && h_prime < 2)
+    {
         rgb = float3(x, c, 0);
+    }
     else if (2 <= h_prime && h_prime < 3)
+    {
         rgb = float3(0, c, x);
+    }
     else if (3 <= h_prime && h_prime < 4)
+    {
         rgb = float3(0, x, c);
+    }
     else if (4 <= h_prime && h_prime < 5)
+    {
         rgb = float3(x, 0, c);
+    }
     else if (5 <= h_prime && h_prime < 6)
+    {
         rgb = float3(c, 0, x);
+    }
 
     float m_val = v - c;
     return rgb + float3(m_val, m_val, m_val);
