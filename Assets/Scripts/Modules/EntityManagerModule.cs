@@ -1,6 +1,7 @@
 using Master.Configs;
 using System;
 using Unity.Entities;
+using Unity.VisualScripting;
 
 namespace Master.Entities
 {
@@ -43,12 +44,7 @@ namespace Master.Entities
 
         public void Dispose()
         {
-            if (_globalStateQuery != null && !_globalStateQuery.IsEmpty)
-            {
-                GlobalState globalState = _globalStateQuery.GetSingleton<GlobalState>();
-                globalState.Dispose();
-                _globalStateQuery.Dispose();
-            }
+            _entityManager.DestroyEntity(_globalStateQuery);
 
             if (_group.Enabled)
             {
