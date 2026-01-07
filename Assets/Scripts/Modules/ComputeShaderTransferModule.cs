@@ -26,6 +26,8 @@ namespace Master.Modules
             _colorKernelIndex = data.Shader.FindKernel(data.ColorKernelName);
         }
 
+        public int KernelLength => _phaseKernelIndexs.Length;
+
         public void BindParameter(
             IGraphicBufferContainer bufferContainer,
             int count,
