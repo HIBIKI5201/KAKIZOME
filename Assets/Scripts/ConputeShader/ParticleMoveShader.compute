@@ -12,15 +12,12 @@ RWStructuredBuffer<float3> VelocityBuffer;
 RWStructuredBuffer<float3> TargetBuffer;
 RWStructuredBuffer<float3> ColorBuffer;
 
+uint ParticleCount;
+float Speed;
+float3 CenterPosition;
+
 float Time;
 float DeltaTime;
-
-uint ParticleCount;
-float3 CenterPosition;
-float Speed;
-
-// フェーズ0情報
-float Radius;
 
 // フェーズ1情報
 RWStructuredBuffer<uint> Phase1Indices;
