@@ -13,7 +13,7 @@ namespace Master.Runner
     {
         [Header("基本設定")]
         [SerializeField]
-        private int _defaultParticleCount = 10000;
+        private DefaultParticleCount _defaultParticleCount;
 
         [Space]
         [SerializeField]
@@ -27,6 +27,8 @@ namespace Master.Runner
         [SerializeField, Tooltip("文字データ")]
         private WordManagerModule.WordData[] _wordDataArray;
 
+
+        private int _particleCount;
         private InitialSphereModule _initialSphereModule;
         private GPUBufferContainerModule _gpuBufferContainer;
         private EntityManagerModule _entityManager;
@@ -38,7 +40,7 @@ namespace Master.Runner
         {
             #region 初期化
             IParticleCountContainer particleCount = FindAnyObjectByType<RuntimeProfiler>();
-            _defaultParticleCount = particleCount.GetParticleCount(_defaultParticleCount);
+            _particleCount = particleCount.GetParticleCount(_defaultParticleCount.Value);
             VisualEffect vfx = GetComponent<VisualEffect>();
 
             World world = World.DefaultGameObjectInjectionWorld;
@@ -48,7 +50,6 @@ namespace Master.Runner
             #endregion
 
             _visualEffectTransfer.Play();
-
         }
 
         private void Update()
@@ -59,7 +60,7 @@ namespace Master.Runner
             ReadOnlySpan<int> phaseCounts = globalState.PhaseCountArray.AsReadOnlySpan();
             _computeShaderTransfer.Dispatch(Time.deltaTime, Time.time,
                 _gpuBufferContainer.PhaseIndicesBuffers, phaseCounts,
-                _defaultParticleCount);
+                _particleCount);
         }
 
         private void OnDestroy()
@@ -75,6 +76,12 @@ namespace Master.Runner
                 _phaseConfigRepository.Phase0Configs.InitialRadius,
                 _phaseConfigRepository.GlobalConfigs.CenterPosition);
             WordManagerModule.OnDrawGizmos(_wordDataArray);
+            Phase2Configs.OnDrawGizmos(
+                _phaseConfigRepository.Phase2Configs,
+                _phaseConfigRepository.GlobalConfigs.CenterPosition);
+            Phase3Configs.OnDrawGizmos(
+                _phaseConfigRepository.Phase3Configs,
+                _phaseConfigRepository.GlobalConfigs.CenterPosition);
         }
 
         /// <summary>
@@ -87,7 +94,7 @@ namespace Master.Runner
             _initialSphereModule = new(
                 _phaseConfigRepository.Phase0Configs.InitialRadius,
                 _phaseConfigRepository.GlobalConfigs.CenterPosition);
-            _gpuBufferContainer = new(_defaultParticleCount, _computeShaderData.PhaseKernelDastas.Length);
+            _gpuBufferContainer = new(_particleCount, _computeShaderData.PhaseKernelDastas.Length);
             _entityManager = new(world);
             _visualEffectTransfer = new(vfx, _vfxParameterNames);
             _computeShaderTransfer = new(_computeShaderData);
@@ -98,12 +105,12 @@ namespace Master.Runner
         /// </summary>
         private void DependencyInjection()
         {
-            _visualEffectTransfer.BindParameter(_gpuBufferContainer, _defaultParticleCount);
-            _computeShaderTransfer.BindParameter(_gpuBufferContainer, _defaultParticleCount,
+            _visualEffectTransfer.BindParameter(_gpuBufferContainer, _particleCount);
+            _computeShaderTransfer.BindParameter(_gpuBufferContainer, _particleCount,
                 _phaseConfigRepository);
 
             GPUBufferContainerLocator.Register(_gpuBufferContainer);
-            _entityManager.CreateSystems(_defaultParticleCount,
+            _entityManager.CreateSystems(_particleCount,
                 _computeShaderData.PhaseKernelDastas.Length, 
                 _phaseConfigRepository);
         }
