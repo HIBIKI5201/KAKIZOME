@@ -34,11 +34,6 @@ namespace Master.Entities
             state.Dependency = job.ScheduleParallel(_phase2EntityQuery, state.Dependency);
         }
 
-        public void OnDestroy(ref SystemState state)
-        {
-            _phase2EntityQuery.Dispose();
-        }
-
         private EntityQuery _phase2EntityQuery;
     }
 
@@ -56,11 +51,15 @@ namespace Master.Entities
         {
             timer.ElapsedTime += DeltaTime;
 
-            if (timer.Timer < timer.ElapsedTime)
+            if (timer.ElapsedTime <= timer.Timer) { return; }
+
+            switch (particle.Index % 3)
             {
-                particle.Phase = 3;
-                ECB.RemoveComponent<Phase2TimerEntity>(entityIndexInQuery, entity);
+                case 0: particle.Phase = 3; break;
+                case 1: particle.Phase = 4; break;
             }
+
+            ECB.RemoveComponent<Phase2TimerEntity>(entityIndexInQuery, entity);
         }
     }
 }
