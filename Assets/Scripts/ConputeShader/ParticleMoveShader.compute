@@ -173,9 +173,12 @@ void Phase3(uint id : SV_DispatchThreadID)
 
     float3 offsetedCenter = CenterPosition + OrbitalCenterOffset;
     
+    float s, c;
+    sincos(angle, s, c);
+
     float3 orbitCenter;
-    orbitCenter.x = offsetedCenter.x + cos(angle) * orbitalRadius;
-    orbitCenter.z = offsetedCenter.z + sin(angle) * orbitalRadius;
+    orbitCenter.x = offsetedCenter.x + c * orbitalRadius;
+    orbitCenter.z = offsetedCenter.z + s * orbitalRadius;
     orbitCenter.y = offsetedCenter.y;
     
     // 球表面上の分布（球ごとに安定）
@@ -237,38 +240,10 @@ void PhaseFinal(uint id : SV_DispatchThreadID)
 // HSVをRGBに変換する。
 float3 HSVtoRGB(float h, float s, float v)
 {
-    float c = v * s;
-    float h_prime = h * 6.0;
-    float x = c * (1 - abs(fmod(h_prime, 2.0) - 1));
-    float3 rgb = float3(0, 0, 0);
-    
-    if (0 <= h_prime && h_prime < 1)
-    {
-        rgb = float3(c, x, 0);
-    }
-    else if (1 <= h_prime && h_prime < 2)
-    {
-        rgb = float3(x, c, 0);
-    }
-    else if (2 <= h_prime && h_prime < 3)
-    {
-        rgb = float3(0, c, x);
-    }
-    else if (3 <= h_prime && h_prime < 4)
-    {
-        rgb = float3(0, x, c);
-    }
-    else if (4 <= h_prime && h_prime < 5)
-    {
-        rgb = float3(x, 0, c);
-    }
-    else if (5 <= h_prime && h_prime < 6)
-    {
-        rgb = float3(c, 0, x);
-    }
-
-    float m_val = v - c;
-    return rgb + float3(m_val, m_val, m_val);
+    // HSV2RGB汎用関数を使用。
+    float4 k = float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    float3 p = abs(frac(h + k.xyz) * 6.0 - k.www);
+    return v * lerp(k.xxx, saturate(p - k.xxx), s);
 }
 
 [numthreads(256, 1, 1)]
