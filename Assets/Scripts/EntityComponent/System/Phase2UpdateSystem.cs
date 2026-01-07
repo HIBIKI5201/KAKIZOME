@@ -1,3 +1,4 @@
+using Master.Utility;
 using Unity.Burst;
 using Unity.Entities;
 
@@ -53,11 +54,8 @@ namespace Master.Entities
 
             if (timer.ElapsedTime <= timer.Timer) { return; }
 
-            switch (particle.Index % 3)
-            {
-                case 0: particle.Phase = 3; break;
-                case 1: particle.Phase = 4; break;
-            }
+            particle.Phase = 
+                ParticleAffiliationUtility.GetAffiliationByIndex(particle.Index, particle.Phase);
 
             ECB.RemoveComponent<Phase2TimerEntity>(entityIndexInQuery, entity);
         }

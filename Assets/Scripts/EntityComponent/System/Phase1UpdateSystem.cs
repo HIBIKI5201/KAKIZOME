@@ -1,4 +1,6 @@
 using Master.Configs;
+using Master.Utility;
+using NUnit.Framework.Internal.Filters;
 using Unity.Burst;
 using Unity.Entities;
 
@@ -60,7 +62,12 @@ namespace Master.Entities
 
             particle.Phase = 2;
 
-            var newTimer = new Phase2TimerEntity(Phase2Configs.Duration);
+            int affiliation = ParticleAffiliationUtility.GetAffiliationByIndex(particle.Index, particle.Phase);
+            float duration = 0;
+            if (affiliation == 3) { duration = Phase2Configs.DurationToPhase3; }
+            else if (affiliation == 4) { duration = Phase2Configs.DurationToPhaseFinal; }
+
+                var newTimer = new Phase2TimerEntity(duration);
             ECB.AddComponent(entityIndex, entity, newTimer);
         }
     }
