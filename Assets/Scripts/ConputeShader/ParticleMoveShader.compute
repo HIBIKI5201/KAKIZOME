@@ -1,5 +1,6 @@
 #pragma kernel Phase1
 #pragma kernel Phase2
+#pragma kernel Phase3
 #pragma kernel PhaseFinal
 #pragma kernel ColorUpdate
 
@@ -27,6 +28,10 @@ float3 CenterPosition;
 RWStructuredBuffer<uint> Phase2Indices;
 uint Phase2Count;
 
+// フェーズ3情報
+RWStructuredBuffer<uint> Phase3Indices;
+uint Phase3Count;
+
 // 最終フェーズ情報
 RWStructuredBuffer<uint> PhaseFinalIndices;
 uint PhaseFinalCount;
@@ -37,6 +42,16 @@ float Speed;
 float Hash01(uint n)
 {
     return frac(sin(n * 12.9898) * 43758.5453);
+}
+
+uint HashUint(uint x)
+{
+    x = (x ^ 61) ^ (x >> 16);
+    x *= 9;
+    x = x ^ (x >> 4);
+    x *= 0x27d4eb2d;
+    x = x ^ (x >> 15);
+    return x;
 }
 
 [numthreads(64, 1, 1)]
@@ -111,6 +126,69 @@ void Phase2(uint id : SV_DispatchThreadID)
     vel.y += yErr * YSpring * DeltaTime;
 
     vel *= AIR_RESISTANCE; // 空気抵抗。
+
+    pos += vel * DeltaTime;
+
+    PositionBuffer[i] = pos;
+    VelocityBuffer[i] = vel;
+}
+
+[numthreads(64, 1, 1)]
+void Phase3(uint id : SV_DispatchThreadID)
+{
+    if (id >= Phase3Count)
+    {
+        return;
+    }
+    
+    uint i = Phase3Indices[id];
+    
+    float3 pos = PositionBuffer[i];
+    float3 vel = VelocityBuffer[i];
+
+    // パラメータ。
+    uint SphereCount = 5;
+    float OrbitalRadius = 15.0;
+    float SphereRadius = 3.0;
+    float OrbitalSpeed = 1.0;
+    float3 CenterOffset = float3(0, 5, 0);
+
+    // 所属する球のインデックス。
+    uint sphereIndex = HashUint(i) % SphereCount;
+
+    // 各球の位相（均等配置）
+    float spherePhase = (sphereIndex / (float) SphereCount) * TAU;
+
+    // 時間による公転。
+    float angle = Time * OrbitalSpeed + spherePhase;
+
+    float3 offsetedCenter = CenterPosition + CenterOffset;
+    
+    float3 orbitCenter;
+    orbitCenter.x = offsetedCenter.x + cos(angle) * OrbitalRadius;
+    orbitCenter.z = offsetedCenter.z + sin(angle) * OrbitalRadius;
+    orbitCenter.y = offsetedCenter.y;
+    
+    // 球表面上の分布（球ごとに安定）
+    uint localSeed = i / SphereCount;
+
+    float seed1 = Hash01(localSeed * 17 + sphereIndex * 131);
+    float seed2 = Hash01(localSeed * 59 + sphereIndex * 241);
+
+    float theta = seed1 * TAU;
+    float phi = acos(1.0 - 2.0 * seed2);
+
+    float3 sphereDir;
+    sphereDir.x = sin(phi) * cos(theta);
+    sphereDir.y = cos(phi);
+    sphereDir.z = sin(phi) * sin(theta);
+    
+    float3 targetPos = orbitCenter + sphereDir * SphereRadius;
+    
+    float3 diff = targetPos - pos;
+
+    vel += diff * Speed * DeltaTime;
+    vel *= AIR_RESISTANCE;
 
     pos += vel * DeltaTime;
 
