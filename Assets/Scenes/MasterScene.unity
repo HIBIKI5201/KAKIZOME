@@ -432,6 +432,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1165370601
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1165370602}
+  - component: {fileID: 1165370603}
+  m_Layer: 0
+  m_Name: Profiler
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1165370602
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1165370601}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1165370603
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1165370601}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52970ff7c62cb9547bf8a0befc6d622f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RuntimeProfiler
 --- !u!1 &1362195998
 GameObject:
   m_ObjectHideFlags: 0
@@ -508,9 +552,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Master.Runner
   _centerPosition: {x: 0, y: 7.5, z: 0}
-  _particleCount: 30000
-  _particleSpeed: 12
-  _particleStopDistance: 0.3
+  _defaultParticleCount: 1000000
+  _particleSpeed: 10
+  _particleStopDistance: 0.5
   _initialRadius: 3
   _phase1Configs:
     _duration: 1
@@ -531,6 +575,9 @@ MonoBehaviour:
     - _kernelName: Phase2
       _indexBufferName: Phase2Indices
       _counterName: Phase2Count
+    - _kernelName: Phase3
+      _indexBufferName: Phase3Indices
+      _counterName: Phase3Count
     - _kernelName: PhaseFinal
       _indexBufferName: PhaseFinalIndices
       _counterName: PhaseFinalCount
@@ -682,3 +729,4 @@ SceneRoots:
   - {fileID: 832575519}
   - {fileID: 1919479457}
   - {fileID: 1362196000}
+  - {fileID: 1165370602}
