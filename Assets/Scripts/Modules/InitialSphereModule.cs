@@ -27,19 +27,6 @@ namespace Master.Modules
             }
         }
 
-        /// <summary>
-        ///     上に上昇する。
-        /// </summary>
-        /// <param name="array"></param>
-        /// <param name="delta"></param>
-        public void UpArray(ref NativeArray<float3> array, float delta)
-        {
-            for (int i = 0; i < array.Length; i++)
-            {
-                array[i] += new float3(0, 1, 0) * delta;
-            }
-        }
-
         private readonly float _radius;
         private readonly Vector3 _center;
 
