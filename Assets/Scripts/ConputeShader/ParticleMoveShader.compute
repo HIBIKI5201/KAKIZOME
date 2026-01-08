@@ -63,13 +63,9 @@ uint HashUint(uint x)
 
 void ApplyAccelerationAndSave(uint i, inout float3 pos, inout float3 vel, float3 acc)
 {
-    // 加速度を適用
-    vel += acc * Speed * DeltaTime;
+    vel += acc * DeltaTime;
     
-    // 空気抵抗を適用
     vel *= AIR_RESISTANCE;
-
-    // Speedを最終的な速度のスケーリングに使い、DeltaTimeを掛けて移動量とする
     pos += vel * DeltaTime;
     
     PositionBuffer[i] = pos;
@@ -93,7 +89,7 @@ void Phase1(uint id : SV_DispatchThreadID)
     float3 vel = VelocityBuffer[i];
     
     // 中心から遠ざかる。
-    float3 acc = -normalize(CenterPosition - pos);
+    float3 acc = -normalize(CenterPosition - pos) * Speed;
     
     ApplyAccelerationAndSave(i, pos, vel, acc);
 }
@@ -145,7 +141,7 @@ void Phase2(uint id : SV_DispatchThreadID)
     // Y軸のバネ挙動の加速度。
     float yErr = CenterPosition.y - pos.y;
     acc.y += yErr * TorusYSpring;
-
+    
     ApplyAccelerationAndSave(i, pos, vel, acc);
 }
 
@@ -185,7 +181,7 @@ void Phase3(uint id : SV_DispatchThreadID)
     orbitCenter.z = offsetedCenter.z + s * orbitalRadius;
     orbitCenter.y = offsetedCenter.y;
     
-    // 球表面上の分布
+    // 球表面上の分布（球ごとに安定）
     uint localSeed = i / OrbitalSphereCount;
 
     float seed1 = Hash01(localSeed * 17 + sphereIndex * 131);
@@ -201,7 +197,8 @@ void Phase3(uint id : SV_DispatchThreadID)
     
     float3 targetPos = orbitCenter + sphereDir * OrbitalSphereRadius;
     
-    float3 acc = targetPos - pos;
+    float3 diff = targetPos - pos;
+    float3 acc = diff * Speed;
 
     ApplyAccelerationAndSave(i, pos, vel, acc);
 }
@@ -233,8 +230,11 @@ void PhaseFinal(uint id : SV_DispatchThreadID)
         VelocityBuffer[i] = float3(0, 0, 0);
         return;
     }
+    
+    // ターゲットに向かって移動。
+    float3 acc = normalize(diff) * Speed;
 
-    ApplyAccelerationAndSave(i, pos, vel, diff);
+    ApplyAccelerationAndSave(i, pos, vel, acc);
 }
 
 // HSVをRGBに変換する。
