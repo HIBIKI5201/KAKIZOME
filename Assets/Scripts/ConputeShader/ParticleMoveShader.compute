@@ -13,7 +13,6 @@ RWStructuredBuffer<float3> TargetBuffer;
 RWStructuredBuffer<float3> ColorBuffer;
 
 uint ParticleCount;
-float Speed;
 float3 CenterPosition;
 
 float Time;
@@ -22,6 +21,7 @@ float DeltaTime;
 // フェーズ1情報
 RWStructuredBuffer<uint> Phase1Indices;
 uint Phase1Count;
+float Phase1Accel;
 
 // フェーズ2情報
 RWStructuredBuffer<uint> Phase2Indices;
@@ -30,6 +30,8 @@ float TorusSpeed;
 float TorusMinRadius;
 float TorusMaxRadius;
 float TorusYSpring;
+float TorusTangentGain;
+float TorusRadiusGain;
 
 // フェーズ3情報
 RWStructuredBuffer<uint> Phase3Indices;
@@ -40,11 +42,14 @@ float3 OrbitalCenterOffset;
 float OrbitalSpeed;
 float OrbitalMaxRadius;
 float OrbitalMinRadius;
+float OrbitalPosGain;
+float OrbitalVelGain;
 
 // 最終フェーズ情報
 RWStructuredBuffer<uint> PhaseFinalIndices;
 uint PhaseFinalCount;
 float StopDistance;
+float PhaseFinalFollowGain;
 
 float Hash01(uint n)
 {
@@ -61,15 +66,22 @@ uint HashUint(uint x)
     return x;
 }
 
-void ApplyAccelerationAndSave(uint i, inout float3 pos, inout float3 vel, float3 acc)
+void Integrate(uint i, inout float3 pos, inout float3 vel, float3 acc)
 {
     vel += acc * DeltaTime;
-    
     vel *= AIR_RESISTANCE;
     pos += vel * DeltaTime;
-    
+
     PositionBuffer[i] = pos;
     VelocityBuffer[i] = vel;
+}
+
+// PD制御関数
+float3 PDControl(float3 currentPos, float3 currentVel, float3 targetPos, float3 targetVel, float posGain, float velGain)
+{
+    float3 posError = targetPos - currentPos;
+    float3 velError = targetVel - currentVel;
+    return posError * posGain + velError * velGain;
 }
 
 
@@ -89,9 +101,9 @@ void Phase1(uint id : SV_DispatchThreadID)
     float3 vel = VelocityBuffer[i];
     
     // 中心から遠ざかる。
-    float3 acc = -normalize(CenterPosition - pos) * Speed;
+    float3 acc = normalize(pos - CenterPosition) * Phase1Accel;
     
-    ApplyAccelerationAndSave(i, pos, vel, acc);
+    Integrate(i, pos, vel, acc);
 }
 
 // 円環を回るフェーズ。
@@ -107,9 +119,6 @@ void Phase2(uint id : SV_DispatchThreadID)
 
     float3 pos = PositionBuffer[i];
     float3 vel = VelocityBuffer[i];
-
-    // パラメータ。
-    float RadiusForce = 6;
 
     // パーティクル固有値。
     float seed = Hash01(i);
@@ -132,17 +141,19 @@ void Phase2(uint id : SV_DispatchThreadID)
     float angularSpeed = TorusSpeed / max(targetRadius, TorusMinRadius);
     float3 targetTangentVel = tangent * (angularSpeed * targetRadius);
     float3 currentTangentVel = dot(vel, tangent) * tangent;
-    float3 acc = (targetTangentVel - currentTangentVel) * 4;
+    float3 tangentAcc = (targetTangentVel - currentTangentVel) * TorusTangentGain;
 
     // 半径方向の加速度。
     float rError = targetRadius - r;
-    acc += normalized * rError * RadiusForce;
+    float3 radialAcc = normalized * rError * TorusRadiusGain;
 
     // Y軸のバネ挙動の加速度。
     float yErr = CenterPosition.y - pos.y;
-    acc.y += yErr * TorusYSpring;
+    float3 yAcc = float3(0, yErr * TorusYSpring, 0);
+
+    float3 acc = tangentAcc + radialAcc + yAcc;
     
-    ApplyAccelerationAndSave(i, pos, vel, acc);
+    Integrate(i, pos, vel, acc);
 }
 
 // 公転する衛星のフェーズ。
@@ -197,10 +208,9 @@ void Phase3(uint id : SV_DispatchThreadID)
     
     float3 targetPos = orbitCenter + sphereDir * OrbitalSphereRadius;
     
-    float3 diff = targetPos - pos;
-    float3 acc = diff * Speed;
+    float3 acc = PDControl(pos, vel, targetPos, float3(0, 0, 0), OrbitalPosGain, OrbitalVelGain);
 
-    ApplyAccelerationAndSave(i, pos, vel, acc);
+    Integrate(i, pos, vel, acc);
 }
 
 
@@ -232,9 +242,9 @@ void PhaseFinal(uint id : SV_DispatchThreadID)
     }
     
     // ターゲットに向かって移動。
-    float3 acc = normalize(diff) * Speed;
+    float3 acc = normalize(diff) * PhaseFinalFollowGain;
 
-    ApplyAccelerationAndSave(i, pos, vel, acc);
+    Integrate(i, pos, vel, acc);
 }
 
 // HSVをRGBに変換する。
