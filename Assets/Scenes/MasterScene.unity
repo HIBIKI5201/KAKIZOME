@@ -552,31 +552,36 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Master.Runner
   _defaultParticleCount:
-    _editorCount: 100000
-    _buildCount: 100000
+    _editorCount: 200000
+    _buildCount: 200000
   _phaseConfigRepository:
     _globalConfigs:
-      _particleSpeed: 500
       _centerPosition: {x: 0, y: 7.5, z: 0}
     _phase0Configs:
       _initialRadius: 3
     _phase1Configs:
       _duration: 2
       _durationRange: {x: -1, y: 1}
+      _phase1Accel: 2000
     _phase2Configs:
       _durationToPhase3: 10
       _durationToPhaseFinal: 15
       _torusSpeed: 120
       _torusRadius: {x: 12, y: 22}
-      _torusYSpring: 0
+      _torusYSpring: 75
+      _tangentGain: 10
+      _radiusGain: 50
     _phase3Configs:
       _orbitalSphereCount: 8
-      _orbitalSphereRadius: 3
-      _orbitalCenterOffset: {x: 0, y: 5, z: 0}
+      _orbitalSphereRadius: 2
+      _orbitalCenterOffset: {x: 0, y: 8, z: 0}
       _orbitalSpeed: 1.5
       _orbitalRadius: {x: 20, y: 28}
+      _posGain: 1000
+      _velGain: 10
     _phaseFinalConfigs:
       _stopDistance: 0.5
+      _followGain: 1000
   _vfxParameterNames:
     _positionBuffer: PositionBuffer
     _particleCount: ParticleCount
@@ -603,21 +608,26 @@ MonoBehaviour:
     _phaseBufferName: PhaseBuffer
     _colorBufferName: ColorBuffer
     _particleCountName: ParticleCount
-    _speedName: Speed
     _centerPositionName: CenterPosition
     _timeName: Time
     _deltaTimeName: DeltaTime
+    _phase1AccelName: Phase1Accel
     _torusMaxRadiusName: TorusMinRadius
     _torusMinRadiusName: TorusMaxRadius
     _torusSpeedName: TorusSpeed
     _torusYSpringName: TorusYSpring
+    _torusTangentGainName: TorusTangentGain
+    _torusRadiusGainName: TorusRadiusGain
     _orbitalSphereCountName: OrbitalSphereCount
     _orbitalSphereRadiusName: OrbitalSphereRadius
     _orbitalCenterOffsetName: OrbitalCenterOffset
     _orbitalSpeedName: OrbitalSpeed
     _orbitalMaxRadiusName: OrbitalMaxRadius
     _orbitalMinRadiusName: OrbitalMinRadius
+    _orbitalPosGainName: OrbitalPosGain
+    _orbitalVelGainName: OrbitalVelGain
     _stopDistanceName: StopDistance
+    _phaseFinalFollowGainName: PhaseFinalFollowGain
   _wordDataArray:
   - _mesh: {fileID: 3675354141150844444, guid: 86f282a9cd6f5474c8c509006c16352f, type: 3}
     _position: {x: 0, y: 20, z: 0}
