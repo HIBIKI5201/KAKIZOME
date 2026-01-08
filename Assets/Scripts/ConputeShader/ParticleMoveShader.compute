@@ -5,7 +5,7 @@
 #pragma kernel ColorUpdate
 
 #define TAU 6.28318530718
-#define AIR_RESISTANCE 0.95
+#define AIR_RESISTANCE 0.98
 
 RWStructuredBuffer<float3> PositionBuffer;
 RWStructuredBuffer<float3> VelocityBuffer;
@@ -66,6 +66,7 @@ uint HashUint(uint x)
     return x;
 }
 
+// 加速を適用
 void Integrate(uint i, inout float3 pos, inout float3 vel, float3 acc)
 {
     vel += acc * DeltaTime;
@@ -208,7 +209,25 @@ void Phase3(uint id : SV_DispatchThreadID)
     
     float3 targetPos = orbitCenter + sphereDir * OrbitalSphereRadius;
     
-    float3 acc = PDControl(pos, vel, targetPos, float3(0, 0, 0), OrbitalPosGain, OrbitalVelGain);
+    float3 accXZ = PDControl(
+        pos,
+        vel,
+        targetPos,
+        float3(0, 0, 0),
+        OrbitalPosGain,
+        OrbitalVelGain
+    );
+
+    float yError = targetPos.y - pos.y;
+    float yVel = vel.y;
+
+    float yAcc = yError * OrbitalPosGain - yVel * OrbitalVelGain;
+
+    float3 acc = float3(
+        accXZ.x,
+        yAcc,
+        accXZ.z
+    );
 
     Integrate(i, pos, vel, acc);
 }
