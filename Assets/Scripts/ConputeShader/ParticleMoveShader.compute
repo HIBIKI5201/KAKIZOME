@@ -61,15 +61,29 @@ uint HashUint(uint x)
     return x;
 }
 
-void ApplyAccelerationAndSave(uint i, inout float3 pos, inout float3 vel, float3 acc)
+// パーティクルを物理制御。
+void ApplyAccelerationAndSave(uint i, inout float3 pos, inout float3 vel, float3 targetPos)
 {
-    // 加速度を適用
-    vel += acc * Speed * DeltaTime;
+    float3 diff = targetPos - pos;
+    float distance = length(diff);
     
-    // 空気抵抗を適用
-    vel *= AIR_RESISTANCE;
+    // パラメータ
+    float SlowingDistance = 5.0;
+    
+    float t = saturate(distance / SlowingDistance);
+    
+    float desiredSpeed = Speed * t;
+    float safeDistance = max(distance, 1e-5);
 
-    // Speedを最終的な速度のスケーリングに使い、DeltaTimeを掛けて移動量とする
+    // 目標速度ベクトル。
+    float3 desiredVelocity = (diff / safeDistance) * desiredSpeed;
+    float3 steering = desiredVelocity - vel;
+    
+    // 加速度を適用。
+    vel += steering * DeltaTime;
+    vel *= AIR_RESISTANCE; // 空気抵抗を適用。
+
+    // 最終的な位置を計算。
     pos += vel * DeltaTime;
     
     PositionBuffer[i] = pos;
@@ -81,129 +95,85 @@ void ApplyAccelerationAndSave(uint i, inout float3 pos, inout float3 vel, float3
 [numthreads(64, 1, 1)]
 void Phase1(uint id : SV_DispatchThreadID)
 {
-    if (id >= Phase1Count)
-    {
-        return;
-    }
+    if (id >= Phase1Count) { return; }
     
-    // インデックスバッファからパーティクルのインデックスを取得。
     uint i = Phase1Indices[id];
-    
     float3 pos = PositionBuffer[i];
     float3 vel = VelocityBuffer[i];
     
-    // 中心から遠ざかる。
-    float3 acc = -normalize(CenterPosition - pos);
+    // 中心から無限遠を目標位置とすることで、離れる動きを表現
+    float3 targetPos = pos + normalize(pos - CenterPosition) * 1000.0;
     
-    ApplyAccelerationAndSave(i, pos, vel, acc);
+    ApplyAccelerationAndSave(i, pos, vel, targetPos);
 }
 
-// 円環を回るフェーズ。
+// 円環を回るフェーズ。（デバッグ用）
 [numthreads(64, 1, 1)]
 void Phase2(uint id : SV_DispatchThreadID)
 {
-    if (id >= Phase2Count)
-    {
-        return;
-    }
+    if (id >= Phase2Count) { return; }
 
     uint i = Phase2Indices[id];
 
-    float3 pos = PositionBuffer[i];
-    float3 vel = VelocityBuffer[i];
-
-    // パラメータ。
-    float RadiusForce = 6;
-
-    // パーティクル固有値。
+    // パーティクル固有の半径を計算
     float seed = Hash01(i);
-    float baseRadius = lerp(TorusMinRadius, TorusMaxRadius, seed);
-    float initialAngle = seed * TAU;
+    float radius = lerp(TorusMinRadius, TorusMaxRadius, seed);
+
+    // --- デバッグここから ---
+    // radiusの値を0.0～1.0の範囲に正規化
+    // (radius - Min) / (Max - Min)
+    float debug_value = saturate((radius - TorusMinRadius) / (TorusMaxRadius - TorusMinRadius));
     
-    // 厚みノイズ。
-    float jitter = (TorusMaxRadius - TorusMinRadius) * 0.05 * (seed - 0.5);
-    float targetRadius = baseRadius + jitter;
-
-    // 円環の平面ベクトル。
-    float3 toPos = pos - CenterPosition;
-    toPos.y = 0.0;
-    float r = length(toPos);
-    r = max(r, 0.0001);
-    float3 normalized = toPos / r;
-    float3 tangent = float3(-normalized.z, 0, normalized.x);
-
-    // 公転運動の加速度。
-    float angularSpeed = TorusSpeed / max(targetRadius, TorusMinRadius);
-    float3 targetTangentVel = tangent * (angularSpeed * targetRadius);
-    float3 currentTangentVel = dot(vel, tangent) * tangent;
-    float3 acc = (targetTangentVel - currentTangentVel) * 4;
-
-    // 半径方向の加速度。
-    float rError = targetRadius - r;
-    acc += normalized * rError * RadiusForce;
-
-    // Y軸のバネ挙動の加速度。
-    float yErr = CenterPosition.y - pos.y;
-    acc.y += yErr * TorusYSpring;
-
-    ApplyAccelerationAndSave(i, pos, vel, acc);
+    // 正規化した値をグレイスケールの色としてColorBufferに書き込む
+    ColorBuffer[i] = float3(debug_value, debug_value, debug_value);
+    // --- デバッグここまで ---
+    
+    // 動きは一時的に止める
+    // ApplyAccelerationAndSave(i, pos, vel, targetPos);
 }
 
 // 公転する衛星のフェーズ。
 [numthreads(64, 1, 1)]
 void Phase3(uint id : SV_DispatchThreadID)
 {
-    if (id >= Phase3Count)
-    {
-        return;
-    }
+    if (id >= Phase3Count) { return; }
     
     uint i = Phase3Indices[id];
-    
     float3 pos = PositionBuffer[i];
     float3 vel = VelocityBuffer[i];
 
+    // 時間によって公転半径が変化
     float t = (cos(Time) + 1) / 2.0;
     float orbitalRadius = lerp(OrbitalMinRadius, OrbitalMaxRadius, t);
     
-    // 所属する球のインデックス。
+    // 所属する球のインデックスと、その球の公転角度を計算
     uint sphereIndex = HashUint(i) % OrbitalSphereCount;
-
-    // 各球の位相（均等配置）
     float spherePhase = (sphereIndex / (float) OrbitalSphereCount) * TAU;
-
-    // 時間による公転。
     float angle = Time * OrbitalSpeed + spherePhase;
 
+    // 球（衛星）の中心位置を計算
     float3 offsetedCenter = CenterPosition + OrbitalCenterOffset;
-    
-    float s, c;
-    sincos(angle, s, c);
-
     float3 orbitCenter;
-    orbitCenter.x = offsetedCenter.x + c * orbitalRadius;
-    orbitCenter.z = offsetedCenter.z + s * orbitalRadius;
+    sincos(angle, orbitCenter.z, orbitCenter.x);
+    orbitCenter.x = offsetedCenter.x + orbitCenter.x * orbitalRadius;
+    orbitCenter.z = offsetedCenter.z + orbitCenter.z * orbitalRadius;
     orbitCenter.y = offsetedCenter.y;
     
-    // 球表面上の分布
+    // 球の表面上のランダムな位置を目標位置とする
     uint localSeed = i / OrbitalSphereCount;
-
     float seed1 = Hash01(localSeed * 17 + sphereIndex * 131);
     float seed2 = Hash01(localSeed * 59 + sphereIndex * 241);
-
     float theta = seed1 * TAU;
     float phi = acos(1.0 - 2.0 * seed2);
-
     float3 sphereDir;
-    sphereDir.x = sin(phi) * cos(theta);
+    sincos(theta, sphereDir.z, sphereDir.x);
+    sphereDir.x *= sin(phi);
+    sphereDir.z *= sin(phi);
     sphereDir.y = cos(phi);
-    sphereDir.z = sin(phi) * sin(theta);
     
     float3 targetPos = orbitCenter + sphereDir * OrbitalSphereRadius;
     
-    float3 acc = targetPos - pos;
-
-    ApplyAccelerationAndSave(i, pos, vel, acc);
+    ApplyAccelerationAndSave(i, pos, vel, targetPos);
 }
 
 
@@ -211,36 +181,29 @@ void Phase3(uint id : SV_DispatchThreadID)
 [numthreads(64, 1, 1)]
 void PhaseFinal(uint id : SV_DispatchThreadID)
 {
-    if (id >= PhaseFinalCount)
-    {
-        return;
-    }
+    if (id >= PhaseFinalCount) { return; }
     
-    // インデックスバッファからパーティクルのインデックスを取得。
     uint i = PhaseFinalIndices[id];
-    
-    float3 target = TargetBuffer[i];
     float3 pos = PositionBuffer[i];
     float3 vel = VelocityBuffer[i];
     
-    float3 diff = target - pos;
-    float dist = length(diff);
+    float3 targetPos = TargetBuffer[i];
     
-    if (dist <= StopDistance)
+    // ターゲットとの距離が近ければ、動きを止める
+    float distSq = dot(targetPos - pos, targetPos - pos);
+    if (distSq <= StopDistance * StopDistance)
     {
-        // ストップしたらターゲット位置にスナップ。
-        PositionBuffer[i] = target;
+        PositionBuffer[i] = targetPos;
         VelocityBuffer[i] = float3(0, 0, 0);
         return;
     }
 
-    ApplyAccelerationAndSave(i, pos, vel, diff);
+    ApplyAccelerationAndSave(i, pos, vel, targetPos);
 }
 
 // HSVをRGBに変換する。
 float3 HSVtoRGB(float h, float s, float v)
 {
-    // HSV2RGB汎用関数を使用。
     float4 k = float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     float3 p = abs(frac(h + k.xyz) * 6.0 - k.www);
     return v * lerp(k.xxx, saturate(p - k.xxx), s);
@@ -249,47 +212,34 @@ float3 HSVtoRGB(float h, float s, float v)
 [numthreads(256, 1, 1)]
 void ColorUpdate(uint3 id : SV_DispatchThreadID)
 {
-    float n = 5; // 内側の範囲。
-    float m = 8; // グラデーション範囲。
-    float centerGradationTime = 0.2;
+    return;
     
     uint index = id.x;
-    if (index >= ParticleCount)
-    {
-        return;
-    }
+    if (index >= ParticleCount) { return; }
     
     float3 pos = PositionBuffer[index];
     float3 diff = pos - CenterPosition;
 
-    float dist = length(diff.xz); // XZ平面の距離。
-    float3 color = float3(1, 1, 1); // デフォルトは白色。
+    float dist = length(diff.xz);
+    float3 color = float3(1, 1, 1);
 
-    if (dist <= n)
+    if (dist <= 5.0) // 内側の範囲
     {
-        // 内側は時間に応じたグラデーション。
-        float hue = fmod(Time * centerGradationTime, 1);
+        float hue = fmod(Time * 0.2, 1.0);
         color = HSVtoRGB(hue, 1, 1);
     }
     else
     {
-        float angle = atan2(diff.z, diff.x) / (2.0 * 3.14159265); // -0.5から0.5。
-        if (angle < 0)
-        {
-            angle += 1;
-        }
+        float angle = atan2(diff.z, diff.x) / TAU + 0.5;
         
-        if (dist <= m)
+        if (dist <= 8.0) // グラデーション範囲
         {
-            // グラデーション（中央から色相環）
-            float t = (dist - n) / (m - n); // 0は内側、1は外側。
-            float hue = lerp(1 / 6, angle, t); // 中央から色相環へのLerp。
-            
+            float t = (dist - 5.0) / (8.0 - 5.0);
+            float hue = lerp(1.0 / 6.0, angle, t);
             color = HSVtoRGB(hue, 1, 1);
         }
         else
         {
-            // 外側は角度に応じた色相環。    
             color = HSVtoRGB(angle, 1, 1);
         }
     }
