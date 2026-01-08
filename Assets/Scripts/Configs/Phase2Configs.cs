@@ -13,6 +13,8 @@ namespace Master.Configs
         public float TorusMaxRadius => _torusRadius.y;
         public float TorusMinRadius => _torusRadius.x;
         public float TorusYSpring => _torusYSpring;
+        public float TangentGain => _tangentGain;
+        public float RadiusGain => _radiusGain;
 
         public static void OnDrawGizmos(Phase2Configs configs, Vector3 center)
         {
@@ -48,5 +50,9 @@ namespace Master.Configs
         private Vector2 _torusRadius;
         [SerializeField, Tooltip("円環のYバネ力")]
         private float _torusYSpring;
+        [SerializeField, Tooltip("接線方向の追従ゲイン")]
+        private float _tangentGain;
+        [SerializeField, Tooltip("半径方向の拘束ゲイン")]
+        private float _radiusGain;
     }
 }

@@ -14,6 +14,8 @@ namespace Master.Configs
         public float OrbitalSpeed => _orbitalSpeed;
         public float OrbitalMaxRadius => _orbitalRadius.y;
         public float OrbitalMinRadius => _orbitalRadius.x;
+        public float PosGain => _posGain;
+        public float VelGain => _velGain;
 
         public static void OnDrawGizmos(Phase3Configs configs, Vector3 center)
         {
@@ -51,5 +53,9 @@ namespace Master.Configs
         private float _orbitalSpeed;
         [SerializeField, Tooltip("衛星球の公転半径"), MinMaxRangeSlider(0, 30)]
         private Vector2 _orbitalRadius;
+        [SerializeField, Tooltip("追従PD制御の位置ゲイン")]
+        private float _posGain;
+        [SerializeField, Tooltip("追従PD制御の速度ゲイン")]
+        private float _velGain;
     }
 }
