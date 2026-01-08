@@ -552,8 +552,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Master.Runner
   _defaultParticleCount:
-    _editorCount: 200000
-    _buildCount: 200000
+    _editorCount: 100000
+    _buildCount: 100000
   _phaseConfigRepository:
     _globalConfigs:
       _centerPosition: {x: 0, y: 7.5, z: 0}
@@ -572,13 +572,13 @@ MonoBehaviour:
       _tangentGain: 10
       _radiusGain: 50
     _phase3Configs:
-      _orbitalSphereCount: 8
+      _orbitalSphereCount: 3
       _orbitalSphereRadius: 2
-      _orbitalCenterOffset: {x: 0, y: 8, z: 0}
-      _orbitalSpeed: 1.5
+      _orbitalCenterOffset: {x: 0, y: 12, z: 0}
+      _orbitalSpeed: 0.8
       _orbitalRadius: {x: 20, y: 28}
       _posGain: 1000
-      _velGain: 10
+      _velGain: 1000
     _phaseFinalConfigs:
       _stopDistance: 0.5
       _followGain: 1000
