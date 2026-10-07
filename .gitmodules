@@ -1,0 +1,4 @@
+[submodule "Assets/AssetStoreTools"]
+	path = Assets/AssetStoreTools
+	url = ../KAKIZOME_AssetStoreTools.git
+	branch = main

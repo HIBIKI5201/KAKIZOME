@@ -97,5 +97,5 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
-Assets/AssetStoreTools/
+# Assets/AssetStoreTools はサブモジュール（KAKIZOME_AssetStoreTools）で管理するため、ここでは無視しない。
 Assets/AI_Demo/
